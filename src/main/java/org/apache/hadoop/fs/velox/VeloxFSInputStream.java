@@ -20,47 +20,72 @@
  */
 package org.apache.hadoop.fs.velox;
 
-
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSInputStream;
 
-import velox.VeloxDFS;
+import com.dicl.velox.VeloxDFS;
 
 /**
  * <p>
  * An {@link FSInputStream} for a VeloxFileSystem and corresponding
  * VeloxDFS instance.
  */
-public class VeloxInputStream extends FSDataInputStream {
-  private static final Log LOG = LogFactory.getLog(VeloxInputStream.class);
-  private boolean closed;
+public class VeloxFSInputStream extends FSInputStream {
+  private static final Log LOG = LogFactory.getLog(VeloxFSInputStream.class);
 
-  private long fd;
-  private long mPos;
+  private boolean closed = false;
+  private long fd = 0;
+  private long mPos = 0;
+  private long fileSize = 0;
+  private byte[] buffer;
+  private int bufferOffset = 0;
 
-  private VeloxDFS vdfs;
+  private VeloxDFS vdfs = null;
+
+  private static final int DEFAULT_BUFFER_SIZE = 8 * 1024 * 1024; // 8MB
 
   /**
-   * Create a new VeloxInputStream.
+   * Create a new VeloxFSInputStream.
    * @param conf The system configuration. Unused.
    * @param fh The file descriptor provided by Velox to reference.
    * @param flength The current length of the file. If the length changes
    * you will need to close and re-open it to access the new data.
    */
-  public VeloxInputStream(VeloxDFS _vdfs, long _fd) {
-    vdfs = _vdfs;
-    fd = _fd;
-    closed = false;
-    mPos = 0;
+  public VeloxFSInputStream() {
+    super();
+
+    buffer = new byte[DEFAULT_BUFFER_SIZE];
+  }
+
+  public VeloxFSInputStream(VeloxDFS vdfs, long fd, int bufferSize, long fileSize) {
+    this.vdfs = vdfs;
+    this.fd = fd;
+
+    this.fileSize = fileSize;
+    bufferSize = (int)Math.min((long)bufferSize, fileSize);
+    this.buffer = new byte[bufferSize];
+  }
+
+  public void setVeloxDFS(VeloxDFS _vdfs) { vdfs = _vdfs; }
+  public void setFd(long _fd) { fd = _fd; }
+  public void setFileSize(long fs) { fileSize = fs; }
+
+  /**
+   *    */
+  @Override
+  public synchronized long getPos() throws IOException {
+    return mPos;
   }
 
   /** Velox likes things to be closed before it shuts down,
    * so closing the IOStream stuff voluntarily in a finalizer is good
    */
+  @Override
   protected void finalize() throws Throwable {
     try {
       if (!closed) {
@@ -76,11 +101,11 @@ public class VeloxInputStream extends FSDataInputStream {
    */
   @Override
   public synchronized int available() throws IOException {
-    return !closed;
+    return (int)(fileSize - mPos);
   }
 
   public synchronized void seek(long targetPos) throws IOException {
-    LOG.trace("[" + VeloxInputStream.class.toString() + "] seek: " + String.valueOf(targetPos));
+    LOG.info("[" + VeloxFSInputStream.class.toString() + "] seek: " + String.valueOf(targetPos));
     mPos = targetPos;
   }
 
@@ -100,46 +125,51 @@ public class VeloxInputStream extends FSDataInputStream {
    */
   @Override
   public synchronized int read() throws IOException {
-    LOG.trace(
-        "VeloxInputStream.read: Reading a single byte from fd " + fd
-        + " by calling general read function");
+  /*
+    LOG.info(
+        "VeloxFSInputStream.read: Reading a single byte from fd " + fd
+        + " at " + getPos());
+        */
 
-    byte result[] = new byte[1];
-    int readBytes = read(mPos, result, 0, 1);
-    return (readBytes <= 0) ? -1 : (256 + (int)result[0]) % 256;
+    if(available() <= 0) return -1;
+
+    bufferOffset %= buffer.length;
+    if(bufferOffset == 0) {
+      read(getPos(), buffer, bufferOffset, buffer.length);
+    }
+
+    //byte result[] = new byte[1];
+    //int readBytes = read(getPos(), result, 0, 1);
+    mPos = getPos() + 1;
+    //return (int)(result[0] & 0xFF);
+    return (int)(buffer[bufferOffset++] & 0xFF);
   }
 
-  /**
-   * Read a specified number of bytes from the file into a byte[].
-   * @param pos position to seek
-   * @param buf buffer to read
-   * @param off offset to read in buffer
-   * @param len length to read
-   * @return 0 if successful, otherwise an error code.
-   * @throws IOException on bad input.
-   */
   @Override
-  public synchronized int read(long pos, byte buf[], int off, int len)
+  public synchronized int read(long pos, byte[] buf, int off, int len)
     throws IOException {
-    LOG.trace("VeloxInputStream.read: Reading " + len + " bytes from fd " + fd);
+    LOG.info("VeloxFSInputStream.read: Reading " + off + "," + len + " bytes from fd " + fd + " at " + pos);
+    if(off < 0 || len < 0 || buf.length - off < len)
+      throw new IndexOutOfBoundsException();
+
+    if(available() <= 0) return -1;
+    if(len == 0) return 0;
 
     long readBytes = vdfs.read(fd, pos, buf, off, len); 
-    mPos += readBytes;
 
-    return readBytes;
+    LOG.info(Arrays.toString(buf));
+
+    return (int)readBytes;
   }
 
-  /**
-   * Close the VeloxInputStream and release the associated filehandle.
-   */
   @Override
   public void close() throws IOException {
-    LOG.trace("VeloxOutputStream.close:enter");
     if (!closed) {
       vdfs.close(fd);
 
       closed = true;
-      LOG.trace("VeloxOutputStream.close:exit");
+      seek(0);
+      bufferOffset = 0;
     }
   }
 }

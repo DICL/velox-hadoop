@@ -24,6 +24,11 @@ public class VeloxFs extends DelegateToFileSystem {
    */
   VeloxFs(final URI theUri, final Configuration conf) throws IOException,
     URISyntaxException {
-    super(theUri, new VeloxFileSystem(), conf, "velox", true);
+    super(theUri, new VeloxFileSystem(), conf, VeloxFileSystem.NAME.getScheme(), false);
+  }
+
+  @Override
+  public int getUriDefaultPort() {
+    return -1;
   }
 }

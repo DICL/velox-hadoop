@@ -21,48 +21,53 @@
 
 package org.apache.hadoop.fs.velox;
 
-import velox.VDFS;
+import com.dicl.velox.VeloxDFS;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.util.Progressable;
+//import org.apache.hadoop.conf.Configuration;
+//import org.apache.hadoop.util.Progressable;
+//import org.apache.hadoop.fs.FSDataOutputStream;
 
 /**
  * <p>
  * An {@link OutputStream} for a VeloxFileSystem and corresponding
  * Velox instance.
  */
-public class VeloxOutputStream extends FSDataOutputStream {
-  private static final Log LOG = LogFactory.getLog(VeloxOutputStream.class);
+public class VeloxFSOutputStream extends OutputStream {
+  private static final Log LOG = LogFactory.getLog(VeloxFSOutputStream.class);
+
   private boolean closed;
 
-  private VDFS vdfs;
-
+  private VeloxDFS vdfs;
   private long fd;
+  private int mPos = 0; // offset of the file
 
   private byte[] buffer;
-  private int bufUsed = 0;
-  private int mPos = 0;
+  private int bufUsed = 0; // offset of the buffer
 
-  /**
-   * Construct the VeloxOutputStream.
-   * @param fd File descriptor
-   * @param bufferSize ??
-   */
-  public VeloxOutputStream(VDFS _vdfs, long _fd, int bufferSize) {
-    vdfs = _vdfs;
-    fd = _fd;
+  public VeloxFSOutputStream() {
+    super();
     closed = false;
+  }
+
+  public VeloxFSOutputStream(VeloxDFS _vdfs, long _fd, int bufferSize) {
+    super();
+    closed = false;
+    this.vdfs = _vdfs;
+    this.fd = _fd;
+    this.buffer = new byte[bufferSize];
+  }
+
+  public void setVeloxDFS(VeloxDFS _vdfs) { vdfs = _vdfs; }
+  public void setFd(long _fd) { fd = _fd; }
+  public void setBuffer(int bufferSize) {
     buffer = new byte[bufferSize];
   }
 
-  /**
-   * Close the Velox file handle if close() wasn't explicitly called.
-   */
   protected void finalize() throws Throwable {
     try {
       if (!closed) {
@@ -73,19 +78,12 @@ public class VeloxOutputStream extends FSDataOutputStream {
     }
   }
 
-  /**
-   * Ensure that the stream is opened.
-   */
   private synchronized void checkOpen() throws IOException {
     if (closed)
       throw new IOException("operation on closed stream (fd=" + fd + ")");
   }
 
-  /**
-   * Get the current position in the file.
-   * @return The file offset in bytes.
-   */
-  public synchronized long getPos() throws IOException {
+  public synchronized int getPos() {
     //checkOpen();
     return mPos;
   }
@@ -110,37 +108,28 @@ public class VeloxOutputStream extends FSDataOutputStream {
       len -= remaining;
 
       if (buffer.length == bufUsed)
-        flushBuffer();
+        flush();
     }
-  }
-
-  /*
-   * Moves data from the buffer into vdfs.
-   */
-  private synchronized void flushBuffer() throws IOException {
-    if (bufUsed == 0)
-      return;
-      
-    long ret = vdfs.write(fd, mPos, buffer, 0, bufUsed);
-    if (ret < 0)
-      throw new IOException("vdfs.write: ret=" + ret);
-
-    mPos += bufUsed;
-    bufUsed = 0;
   }
    
   @Override
   public synchronized void flush() throws IOException {
-    flushBuffer(); // buffer -> vdfs
+    if (bufUsed == 0)
+      return;
+      
+    long ret = vdfs.write(fd, getPos(), buffer, 0, bufUsed);
+    if (ret < 0)
+      throw new IOException("vdfs.write: ret=" + ret);
+
+    mPos = getPos() + bufUsed;
+    bufUsed = 0;
   }
   
   @Override
   public synchronized void close() throws IOException {
     //checkOpen();
     flush();
-    vdfs.close(fileHandle);
+    vdfs.close(fd);
     closed = true;
-    mPos = 0;
-    bufUsed = 0;
   }
 }

@@ -2,23 +2,22 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.dicl.velox</groupId>
+    <groupId>org.apache.hadoop.fs.velox</groupId>
     <artifactId>velox-hadoop</artifactId>
     <packaging>jar</packaging>
-    <version>0.01.0</version>
+    <version>${libveloxdfs.version}</version>
     <name>velox-hadoop</name>
     <url>http://www.github.com/DICL/velox-hadoop</url>
     <description>VeloxDFS for Hadoop.</description>
     <licenses>
-    <license>
-    <name>The Apache Software License, Version 2.0</name>
-    <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-    </license>
+      <license>
+        <name>The Apache Software License, Version 2.0</name>
+        <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      </license>
     </licenses>
     <developers>
       <developer>
-        <name>Deukyeon Hwang</name>
-        <email>deukyeon.hwang@gmail.com</email>
+        <name>DICL</name>
         <organization>DICL at UNIST</organization>
         <organizationUrl>http://dicl.unist.ac.kr</organizationUrl>
       </developer>
@@ -29,124 +28,89 @@
       <url>scm:git:git@github.com:dicl/velox-hadoop.git</url>
     </scm>
 
-    <distributionManagement>
-      <snapshotRepository>
-	<id>ossrh</id>
-	<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-      </snapshotRepository>
-    </distributionManagement>
-    
     <properties>
-    	<hadoop.version>2.7.3</hadoop.version>
-    	<libveloxdfs.version>0.1</libveloxdfs.version>
+      <hadoop.version>2.7.3</hadoop.version>
+      <libveloxdfs.version>1.0</libveloxdfs.version>
+      <velox.dir>/home/deukyeon/VeloxDFS</velox.dir>
+      <skipTests>true</skipTests>
     </properties>
 
+<!--
+    <repositories>
+    <repository>
+    <id>VeloxDFS</id>
+    <url>file:://${velox.dir}/build/java/</url>
+    </repository>
+    </repositories>
+
     <dependencies>
-    <dependency>
-    <groupId>junit</groupId>
-    <artifactId>junit</artifactId>
-    <version>4.9</version>
-    <scope>test</scope>
-    </dependency>
-      
-      <!--  
-      	 Since HADOOP-9361 just came out, we
-      	 will use frozen jars until hadoop-2.4.2 comes out.
-      	 Then we can get rid of this custom logic.
-      	 Also we will be able to remove the custom logic
-      	 in vagrant dev-setup.sh scripts
-	-->
+    -->
+
+    <dependencies>
+
       <dependency>
-      <groupId>com.rhbd.hcfs</groupId>
-      <artifactId>hadoop-common-latest-tests</artifactId>
-      <version>0.1</version>
-      <scope>system</scope>
-      <systemPath>${project.basedir}/src/test/resources/hadoop-common-3.0.0-SNAPSHOT-tests.jar</systemPath>
+        <groupId>com.dicl.velox</groupId>
+        <artifactId>veloxdfs</artifactId>
+        <version>${libveloxdfs.version}</version>
+        <scope>system</scope>
+        <systemPath>${velox.dir}/build/java/veloxdfs.jar</systemPath>
       </dependency>
+
       <dependency>
-      <groupId>com.rhbd.hcfs</groupId>
-      <artifactId>hadoop-common-latest</artifactId>
-      <version>0.1</version>
-      <scope>system</scope>
-      <systemPath>${project.basedir}/src/test/resources/hadoop-common-3.0.0-SNAPSHOT.jar</systemPath>
-      </dependency>      
-      
-      
-      <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-common</artifactId>
-      <version>${hadoop.version}</version>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-common</artifactId>
+        <version>${hadoop.version}</version>
       </dependency>
-    
+
     </dependencies>
 
     <build>
-      <testResources>
-        <testResource>
-          <directory>conf</directory>
-        </testResource>
-      </testResources>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-             <artifactId>maven-compiler-plugin</artifactId>
-             <version>3.1</version>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-release-plugin</artifactId>
-            <version>2.4.1</version>
-          </plugin>
-	  <plugin>
-	    <groupId>org.apache.maven.plugins</groupId>
-	    <artifactId>maven-source-plugin</artifactId>
-	    <executions>
-	      <execution>
-		<id>attach-sources</id>
-		<goals>
-		  <goal>jar</goal>
-		</goals>
-	      </execution>
-	    </executions>
-	  </plugin>
-	  <plugin>
-	    <groupId>org.apache.maven.plugins</groupId>
-	    <artifactId>maven-javadoc-plugin</artifactId>
-	    <executions>
-	      <execution>
-		<id>attach-javadocs</id>
-		<goals>
-		  <goal>jar</goal>
-		</goals>
-	      </execution>
-	    </executions>
-	  </plugin>
-	  <plugin>
-	    <groupId>org.sonatype.plugins</groupId>
-	    <artifactId>nexus-staging-maven-plugin</artifactId>
-	    <version>1.6.2</version>
-	    <extensions>true</extensions>
-	    <configuration>
-              <serverId>ossrh</serverId>
-              <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-              <autoReleaseAfterClose>true</autoReleaseAfterClose>
-	    </configuration>
-	  </plugin>
-	  <plugin>
-	    <groupId>org.apache.maven.plugins</groupId>
-	    <artifactId>maven-gpg-plugin</artifactId>
-	    <version>1.5</version>
-	    <executions>
-              <execution>
-		<id>sign-artifacts</id>
-		<phase>verify</phase>
-		<goals>
-		  <goal>sign</goal>
-		</goals>
-              </execution>
-	    </executions>
-	  </plugin>
-        </plugins>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.1</version>
+          <configuration>
+            <skip>${skipTests}</skip>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>2.4.1</version>
+          <configuration>
+            <skipTests>${skipTests}</skipTests>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>attach-sources</id>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <!--
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <configuration>
+            <skipTests>${skipTests}</skipTests>
+          </configuration>
+          <executions>
+            <execution>
+              <id>attach-javadocs</id>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        -->
+      </plugins>
     </build>
-
 </project>

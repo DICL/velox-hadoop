@@ -22,7 +22,6 @@ package org.apache.hadoop.fs.velox;
 
 import java.io.IOException;
 import java.io.FileNotFoundException;
-import java.io.OutputStream;
 import java.net.URI;
 import java.net.InetAddress;
 import java.util.EnumSet;
@@ -36,7 +35,6 @@ import org.apache.commons.logging.LogFactory;
 //import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FSInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
@@ -47,66 +45,108 @@ import org.apache.hadoop.util.Progressable;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.net.DNS;
 import org.apache.hadoop.fs.FsStatus;
+import org.apache.hadoop.security.UserGroupInformation;
 
-import org.apache.hadoop.fs.velox.VeloxInputStream;
-import org.apache.hadoop.fs.velox.VeloxOutputStream;
-import velox.VeloxDFS;
-import velox.model.Metadata;
+import org.apache.hadoop.fs.velox.VeloxFSInputStream;
+import org.apache.hadoop.fs.velox.VeloxFSOutputStream;
+import com.dicl.velox.VeloxDFS;
+import com.dicl.velox.model.Metadata;
+import com.dicl.velox.model.BlockMetadata;
 //import velox.Configuration;
+
+
+//import java.net.InetAddress;
+//import java.net.UnknownHostException;
 
 public class VeloxFileSystem extends FileSystem {
   private static final Log LOG = LogFactory.getLog(VeloxFileSystem.class);
-  private URI uri;
 
-  private Path workingDir = "";
-  private VeloxDFS vdfs = null;
+  public static final String VELOX_URI_SCHEME = "velox";
+  public static final URI NAME = URI.create(VELOX_URI_SCHEME + ":///");
 
-  private velox.Configuration conf;
+  private Path workingDir;
+  private VeloxDFS veloxdfs;
+
+  private com.dicl.velox.Configuration conf;
+
+  private UserGroupInformation ugi;
+
+  private FsPermission defaultFilePermission;// = FsPermission.getFileDefault().applyUMask(FsPermission.getUMask(getConf()));
+  private FsPermission defaultDirPermission;// = FsPermission.getDirDefault().applyUMask(FsPermission.getUMask(getConf()));
 
   /**
    * Create a new VeloxFileSystem.
    */
   public VeloxFileSystem() {
-    conf = new velox.Configuration();
   }
 
   /**
    * Create an absolute path using the working directory.
+   * It is not an absolute path because velox doesn't support directory.
    */
-  private Path makeAbsolute(Path path) {
+  private Path makeVeloxPath(Path path) {
+    if(path == null) 
+      return workingDir;
+
+    //return path;
+    Path ret = Path.getPathWithoutSchemeAndAuthority(path);
+    return ret.toString().startsWith("/") ? ret : new Path("/" + ret.toString());
+
+    //return new Path(Path.SEPARATOR + path.getName());
+    
+    /*
     if (path.isAbsolute()) {
       return path;
     }
     return new Path(workingDir, path);
+    */
   }
 
   public URI getUri() {
-    return uri;
+    return NAME;
+  }
+
+  @Override
+  public String getScheme() {
+    return VELOX_URI_SCHEME;
   }
 
   @Override
   public void initialize(URI uri, org.apache.hadoop.conf.Configuration conf) throws IOException {
     super.initialize(uri, conf);
-    if (vdfs == null) {
-      this.vdfs = new VeloxDFS();
+    if (veloxdfs == null) {
+      this.veloxdfs = new VeloxDFS();
     }
     setConf(conf);
-    this.uri = URI.create(uri.getScheme() + "://" + uri.getAuthority());
-    //this.workingDir = getHomeDirectory();
-    this.workingDir = "";
+    this.workingDir = new Path("/");
+    this.ugi = UserGroupInformation.getCurrentUser();
+    //
+    if(this.conf == null)
+      this.conf = new com.dicl.velox.Configuration(conf.get("fs.velox.json"));
+    LOG.info("initialize with " + this.workingDir.toString() + " for " + this.ugi.getUserName());
+
+    this.defaultFilePermission = FsPermission.getFileDefault().applyUMask(FsPermission.getUMask(getConf()));
+    this.defaultDirPermission = FsPermission.getDirDefault().applyUMask(FsPermission.getUMask(getConf()));
   }
 
   /** 
    * Open a file with a given its path
    * @param f File Path
-   * @return VeloxInputStream
+   * @return VeloxFSInputStream
    */
   @Override
   public FSDataInputStream open(Path f) throws IOException {
-    long fd = vdfs.open(f.toString());
-    
-    VeloxInputStream vis = new VeloxInputStream(vdfs, fd);
-    return vis;
+    return open(f, getConf().getInt("fs.velox.inputstream.buffersize", 8388608));
+  }
+
+  public FSDataInputStream open(Path f, int bufferSize) throws IOException {
+    f = makeVeloxPath(f);
+    LOG.info("open with " + f.toString());
+
+    long fd = veloxdfs.open(f.toString());
+    Metadata md = veloxdfs.getMetadata(fd);
+
+    return new FSDataInputStream(new VeloxFSInputStream(veloxdfs, fd, bufferSize, md.size));
   }
 
   /**
@@ -120,28 +160,27 @@ public class VeloxFileSystem extends FileSystem {
   /**
    * Get an FSDataOutputStream to append onto a file.
    * @param path The File you want to append onto
-   * @param bufferSize Ceph does internal buffering but you can buffer in the Java code as well if you like.
+   * @param bufferSize Velox does internal buffering but you can buffer in the Java code as well if you like.
    * @param progress The Progressable to report progress to.
    * Reporting is limited but exists.
-   * @return An FSDataOutputStream that connects to the file on Ceph.
+   * @return An FSDataOutputStream that connects to the file on Velox.
    * @throws IOException If the file cannot be found or appended to.
    */
   public FSDataOutputStream append(Path path, int bufferSize,
       Progressable progress) throws IOException {
-    path = makeAbsolute(path);
+    path = makeVeloxPath(path);
 
     if (progress != null) {
       progress.progress();
     }
 
-    long fd = vdfs.open(path.toString());
+    long fd = veloxdfs.open(path.toString());
 
     if (progress != null) {
       progress.progress();
     }
 
-    VeloxOutputStream vos = new VeloxOutputStream(vdfs, fd, bufferSize);
-    return new FSDataOutputStream(vos, statistics);
+    return new FSDataOutputStream(new VeloxFSOutputStream(veloxdfs, fd, bufferSize), statistics);
   }
 
   public Path getWorkingDirectory() {
@@ -150,7 +189,7 @@ public class VeloxFileSystem extends FileSystem {
 
   @Override
   public void setWorkingDirectory(Path dir) {
-    workingDir = makeAbsolute(dir);
+    workingDir = makeVeloxPath(dir);
   }
 
   /**
@@ -164,6 +203,28 @@ public class VeloxFileSystem extends FileSystem {
   @Override
   public boolean mkdirs(Path path, FsPermission perms) throws IOException {
     // Doesn't support
+    LOG.info("mkdir with " + path.toString());
+
+    path = makeVeloxPath(path);
+
+    if(path == null) return false;
+
+    if(path.getParent() != null && !path.isRoot())
+      mkdirs(path.getParent(), perms);
+
+    long fd = veloxdfs.open(path.toString());
+    veloxdfs.close(fd);
+
+/*
+    Path p = path;
+    while(p != null && !p.isRoot()) {
+      LOG.info(p.toString());
+      long fd = veloxdfs.open(p.toString());
+      veloxdfs.close(fd);
+      p = p.getParent();
+    }
+    */
+
     return true;
   }
 
@@ -177,7 +238,7 @@ public class VeloxFileSystem extends FileSystem {
    */
   @Override
   public boolean mkdirs(Path f) throws IOException {
-    return mkdirs(f, FsPermission.getDirDefault().applyUMask(FsPermission.getUMask(getConf())));
+    return mkdirs(f, this.defaultDirPermission);
   }
 
   /**
@@ -186,31 +247,64 @@ public class VeloxFileSystem extends FileSystem {
    * @return FileStatus object containing the stat information.
    */
   public FileStatus getFileStatus(Path path) throws IOException {
-    path = makeAbsolute(path);
+    LOG.info("getFileStatus with " + path.toString());
+    Path originalPath = path;
+    path = makeVeloxPath(path);
 
-    long fd = vdfs.open(path.toString());
-    Metadata data = vdfs.getMetadata(fd);
+    if(!veloxdfs.exists(path.toString())) 
+      throw new FileNotFoundException();
 
-    return new FileStatus(data.size, false, data.replica, conf.blockSize(), 0, path);
+    long fd = veloxdfs.open(path.toString());
+    Metadata data = veloxdfs.getMetadata(fd);
+
+    FileStatus ret = new FileStatus(data.size, false, data.replica, conf.blockSize(), 0, 0,
+      (data.size == 0 ? this.defaultDirPermission : this.defaultFilePermission), 
+      this.ugi.getUserName(), this.ugi.getPrimaryGroupName(), makeQualified(path));
+    return ret;
   }
 
-  /**
-   * Get the FileStatus for each listing in a directory.
-   * @param path The directory to get listings from.
-   * @return FileStatus[] containing one FileStatus for each directory listing;
-   *         null if path does not exist.
-   */
+  @Override
   public FileStatus[] listStatus(Path path) throws IOException {
-    path = makeAbsolute(path);
+    LOG.info("listStatus with " + path.toString());
 
-    // TODO: implementation using ls function of vdfs
+// try InetAddress.LocalHost first;
+//      NOTE -- InetAddress.getLocalHost().getHostName() will not work in certain environments.
+/*
+try {
+    String result = InetAddress.getLocalHost().getHostName();
+    LOG.info(result);
+} catch (UnknownHostException e) {
+    // failed;  try alternate means.
+}
+*/
 
-    return new FileStatus[];
+    path = makeVeloxPath(path);
+
+    if(!veloxdfs.exists(path.toString()))
+      throw new FileNotFoundException();
+
+    Metadata[] metadata = veloxdfs.list(false, path.toString());
+
+    FileStatus[] list = new FileStatus[metadata.length];
+    for(int i=0; i<metadata.length; i++) {
+      Metadata m = metadata[i];
+      list[i] = new FileStatus(m.size, false, m.replica, conf.blockSize(), 0, 0, 
+        (m.size == 0 ? this.defaultDirPermission : this.defaultFilePermission), 
+        this.ugi.getUserName(), this.ugi.getPrimaryGroupName(), makeQualified(new Path(path, m.name)));
+    }
+
+    return list;
   }
 
   @Override
   public void setPermission(Path path, FsPermission permission) throws IOException {
     // Doesn't support
+  }
+
+  @Override 
+  public void setOwner(Path path, String username, String groupname) throws IOException {
+    // Doesn't support
+    LOG.info("setOwner with " + path + ", " + username + ", " + groupname);
   }
 
   @Override
@@ -223,32 +317,32 @@ public class VeloxFileSystem extends FileSystem {
    * @param permission The permissions to apply to the file.
    * @param overwrite If true, overwrite any existing file with
 	 * this name; otherwise don't.
-   * @param bufferSize Ceph does internal buffering, but you can buffer
+   * @param bufferSize Velox does internal buffering, but you can buffer
    *   in the Java code too if you like.
    * @param replication Replication factor. See documentation on the
    *   "ceph.data.pools" configuration option.
-   * @param blockSize Ignored by Ceph. You can set client-wide block sizes
+   * @param blockSize Ignored by Velox. You can set client-wide block sizes
    * via the fs.ceph.blockSize param if you like.
    * @param progress A Progressable to report back to.
    * Reporting is limited but exists.
    * @return An FSDataOutputStream pointing to the created file.
    * @throws IOException if the path is an
    * existing directory, or the path exists but overwrite is false, or there is a
-   * failure in attempting to open for append with Ceph.
+   * failure in attempting to open for append with Velox.
    */
   public FSDataOutputStream create(Path path, FsPermission permission,
       boolean overwrite, int bufferSize, short replication, long blockSize,
       Progressable progress) throws IOException {
 
-    path = makeAbsolute(path);
+    LOG.info("create with " + path.toString());
+    path = makeVeloxPath(path);
 
-    boolean exists = exists(path);
 
     if (progress != null) {
       progress.progress();
     }
 
-    if (exists) {
+    if (exists(path)) {
       if (overwrite) {
         // TODO: overwrite
       }
@@ -260,7 +354,7 @@ public class VeloxFileSystem extends FileSystem {
       progress.progress();
     }
 
-    /* Sanity check. Ceph interface uses int for striping strategy */
+    /* Sanity check. Velox interface uses int for striping strategy */
     if (blockSize > Integer.MAX_VALUE) {
       blockSize = Integer.MAX_VALUE;
       LOG.info("blockSize too large. Rounding down to " + blockSize);
@@ -268,14 +362,13 @@ public class VeloxFileSystem extends FileSystem {
     else if (blockSize <= 0)
       throw new IllegalArgumentException("Invalid block size: " + blockSize);
 
-    long fd = vdfs.open(path.toString());
+    long fd = veloxdfs.open(path.toString());
 
     if (progress != null) {
       progress.progress();
     }
 
-    VeloxOutputStream vos = new VeloxOutputStream(vdfs, fd, bufferSize);
-    return new FSDataOutputStream(vos, statistics);
+    return new FSDataOutputStream(new VeloxFSOutputStream(veloxdfs, fd, bufferSize), statistics);
   }
 
   /**
@@ -300,7 +393,7 @@ public class VeloxFileSystem extends FileSystem {
       int bufferSize, short replication, long blockSize,
       Progressable progress) throws IOException {
 
-    path = makeAbsolute(path);
+    path = makeVeloxPath(path);
 
     return this.create(path, permission, overwrite,
         bufferSize, replication, blockSize, progress);
@@ -314,8 +407,10 @@ public class VeloxFileSystem extends FileSystem {
    */
   @Override
   public boolean rename(Path src, Path dst) throws IOException {
-    src = makeAbsolute(src);
-    dst = makeAbsolute(dst);
+    LOG.info("rename with " + src.toString() + ", " + dst.toString());
+    src = makeVeloxPath(src);
+    dst = makeVeloxPath(dst);
+
 
     // TODO: rename NOT implemented
 
@@ -333,34 +428,36 @@ public class VeloxFileSystem extends FileSystem {
    */
   @Override
   public BlockLocation[] getFileBlockLocations(FileStatus file, long start, long len) throws IOException {
-    Path path = makeAbsolute(file.getPath());
+    LOG.info("getFileBlockLocations with " + file.getPath().toString() + ", " + String.valueOf(start) + ", " + String.valueOf(len));
 
-    long fd = vdfs.open(path.toString());
+    if (file.getLen() <= start) {
+      return new BlockLocation[0];
+    }
 
-    Metadata data = vdfs.getMetadata(fd);
+    Path path = makeVeloxPath(file.getPath());
 
-    ArrayList<BlockLocation> blocks = new ArrayList<BlockLocation>();
+    long fd = veloxdfs.open(path.toString());
+
+    Metadata data = veloxdfs.getMetadata(fd);
 
     long curPos = start;
     long endOff = curPos + len;
 
+    BlockLocation[] locations = new BlockLocation[data.numBlock];
+
     // Prototype of BlockLocation
     // BlockLocation(String[] names, String[] hosts, long offset, long length)
     // TODO: getting hosts of replicas 
-    for(int i=0; i<numBlock; i++) {
-      BlockMetadata bdata = data.blocks[i];
-      String[] names = new String[1];
-      names[0] = bdata.name;
-
-      String[] hosts = new String[1];
-      hosts[0] = bdata.host;
-       
-      blocks.add(new BlockLocation(names, hosts, curPos, bdata.size));
-      curPos += bdata.size;
+    for(int i=0; i<data.numBlock; i++) {
+      LOG.info(new Path(data.blocks[i].name).getName().toString() + ", " + data.blocks[i].host + ", " + String.valueOf(curPos) + ", " + String.valueOf(data.blocks[i].size));
+      locations[i] = new BlockLocation(
+        //new String[]{new Path(conf.storagePath(), data.blocks[i].name).toString()}, 
+        new String[]{data.blocks[i].name},
+        new String[]{data.blocks[i].host}, 
+        curPos, data.blocks[i].size
+      );
+      curPos += data.blocks[i].size;
     }
-
-    BlockLocation[] locations = new BlockLocation[blocks.size()];
-    locations = blocks.toArray(locations);
 
     return locations;
   }
@@ -371,17 +468,30 @@ public class VeloxFileSystem extends FileSystem {
 	}
 
   public boolean delete(Path path, boolean recursive) throws IOException {
-    path = makeAbsolute(path);
-    return vdfs.remove(path.toString());
+    try {
+      LOG.info("delete with " + path.toString() + ", " + String.valueOf(recursive));
+      path = makeVeloxPath(path);
+
+      if(recursive) {
+        FileStatus[] files = listStatus(path);
+        for(int i=0; i<files.length; i++) 
+          delete(files[i].getPath(), false);
+      }
+      veloxdfs.remove(path.toString());
+    } catch(FileNotFoundException e) {
+    }
+    return true;
   }
 
   @Override
   public short getDefaultReplication() {
-    return conf.numOfReplications();
+    LOG.info("getDefaultReplication()");
+    return (short)conf.numOfReplications();
   }
 
   @Override
   public long getDefaultBlockSize() {
+    LOG.info("getDefaultBlockSize()");
     return conf.blockSize();
   }
   
@@ -391,4 +501,16 @@ public class VeloxFileSystem extends FileSystem {
 	  return new FsStatus(0, 0, 0);
   }
 
+  /** Check if exists.
+   ** @param f source file
+   **/
+  @Override
+  public boolean exists(Path f) throws IOException {
+    LOG.info("exists with " + f.toString());
+    try {
+      return getFileStatus(f) != null;
+    } catch (FileNotFoundException e) {
+      return false;
+    }
   }
+}

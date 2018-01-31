@@ -36,7 +36,7 @@ import com.dicl.velox.VeloxDFS;
  * VeloxDFS instance.
  */
 public class VeloxFSInputStream extends FSInputStream {
-  private static final Log LOG = LogFactory.getLog(VeloxFSInputStream.class);
+  //private static final Log LOG = LogFactory.getLog(VeloxFSInputStream.class);
 
   private boolean closed = false;
   private long fd = 0;
@@ -105,7 +105,7 @@ public class VeloxFSInputStream extends FSInputStream {
   }
 
   public synchronized void seek(long targetPos) throws IOException {
-    LOG.info("[" + VeloxFSInputStream.class.toString() + "] seek: " + String.valueOf(targetPos));
+    //LOG.info("[" + VeloxFSInputStream.class.toString() + "] seek: " + String.valueOf(targetPos));
     mPos = targetPos;
   }
 
@@ -148,7 +148,7 @@ public class VeloxFSInputStream extends FSInputStream {
   @Override
   public synchronized int read(long pos, byte[] buf, int off, int len)
     throws IOException {
-    LOG.info("VeloxFSInputStream.read: Reading " + off + "," + len + " bytes from fd " + fd + " at " + pos);
+    //LOG.info("VeloxFSInputStream.read: Reading " + off + "," + len + " bytes from fd " + fd + " at " + pos);
     if(off < 0 || len < 0 || buf.length - off < len)
       throw new IndexOutOfBoundsException();
 
@@ -156,8 +156,6 @@ public class VeloxFSInputStream extends FSInputStream {
     if(len == 0) return 0;
 
     long readBytes = vdfs.read(fd, pos, buf, off, len); 
-
-    LOG.info(Arrays.toString(buf));
 
     return (int)readBytes;
   }

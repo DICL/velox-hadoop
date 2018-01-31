@@ -67,7 +67,7 @@ public class VeloxFileSystem extends FileSystem {
   private Path workingDir;
   private VeloxDFS veloxdfs;
 
-  private com.dicl.velox.Configuration conf;
+  private com.dicl.velox.Configuration veloxConf;
 
   private UserGroupInformation ugi;
 
@@ -121,8 +121,8 @@ public class VeloxFileSystem extends FileSystem {
     this.workingDir = new Path("/");
     this.ugi = UserGroupInformation.getCurrentUser();
     //
-    if(this.conf == null)
-      this.conf = new com.dicl.velox.Configuration(conf.get("fs.velox.json"));
+    if(this.veloxConf == null)
+      this.veloxConf = new com.dicl.velox.Configuration(conf.get("fs.velox.json"));
     LOG.info("initialize with " + this.workingDir.toString() + " for " + this.ugi.getUserName());
 
     this.defaultFilePermission = FsPermission.getFileDefault().applyUMask(FsPermission.getUMask(getConf()));
@@ -257,7 +257,7 @@ public class VeloxFileSystem extends FileSystem {
     long fd = veloxdfs.open(path.toString());
     Metadata data = veloxdfs.getMetadata(fd);
 
-    FileStatus ret = new FileStatus(data.size, false, data.replica, conf.blockSize(), 0, 0,
+    FileStatus ret = new FileStatus(data.size, false, data.replica, veloxConf.blockSize(), 0, 0,
       (data.size == 0 ? this.defaultDirPermission : this.defaultFilePermission), 
       this.ugi.getUserName(), this.ugi.getPrimaryGroupName(), makeQualified(path));
     return ret;
@@ -288,7 +288,7 @@ try {
     FileStatus[] list = new FileStatus[metadata.length];
     for(int i=0; i<metadata.length; i++) {
       Metadata m = metadata[i];
-      list[i] = new FileStatus(m.size, false, m.replica, conf.blockSize(), 0, 0, 
+      list[i] = new FileStatus(m.size, false, m.replica, veloxConf.blockSize(), 0, 0, 
         (m.size == 0 ? this.defaultDirPermission : this.defaultFilePermission), 
         this.ugi.getUserName(), this.ugi.getPrimaryGroupName(), makeQualified(new Path(path, m.name)));
     }
@@ -428,7 +428,7 @@ try {
    */
   @Override
   public BlockLocation[] getFileBlockLocations(FileStatus file, long start, long len) throws IOException {
-    LOG.info("getFileBlockLocations with " + file.getPath().toString() + ", " + String.valueOf(start) + ", " + String.valueOf(len));
+    LOG.info("getFileBlockLocations with " + file.getPath().toString() + ", " + String.valueOf(start) + ", " + String.valueOf(len) + ", " + file.getLen());
 
     if (file.getLen() <= start) {
       return new BlockLocation[0];
@@ -439,6 +439,7 @@ try {
     long fd = veloxdfs.open(path.toString());
 
     Metadata data = veloxdfs.getMetadata(fd);
+    LOG.info("The # of blocks : " + data.numBlock);
 
     long curPos = start;
     long endOff = curPos + len;
@@ -451,7 +452,7 @@ try {
     for(int i=0; i<data.numBlock; i++) {
       LOG.info(new Path(data.blocks[i].name).getName().toString() + ", " + data.blocks[i].host + ", " + String.valueOf(curPos) + ", " + String.valueOf(data.blocks[i].size));
       locations[i] = new BlockLocation(
-        //new String[]{new Path(conf.storagePath(), data.blocks[i].name).toString()}, 
+        //new String[]{new Path(veloxConf.storagePath(), data.blocks[i].name).toString()}, 
         new String[]{data.blocks[i].name},
         new String[]{data.blocks[i].host}, 
         curPos, data.blocks[i].size
@@ -479,6 +480,7 @@ try {
       }
       veloxdfs.remove(path.toString());
     } catch(FileNotFoundException e) {
+      return false;
     }
     return true;
   }
@@ -486,13 +488,13 @@ try {
   @Override
   public short getDefaultReplication() {
     LOG.info("getDefaultReplication()");
-    return (short)conf.numOfReplications();
+    return (short)veloxConf.numOfReplications();
   }
 
   @Override
   public long getDefaultBlockSize() {
     LOG.info("getDefaultBlockSize()");
-    return conf.blockSize();
+    return veloxConf.blockSize();
   }
   
   @Override

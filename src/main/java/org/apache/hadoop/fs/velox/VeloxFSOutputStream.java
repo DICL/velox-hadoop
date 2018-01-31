@@ -38,7 +38,7 @@ import org.apache.commons.logging.LogFactory;
  * Velox instance.
  */
 public class VeloxFSOutputStream extends OutputStream {
-  private static final Log LOG = LogFactory.getLog(VeloxFSOutputStream.class);
+  //private static final Log LOG = LogFactory.getLog(VeloxFSOutputStream.class);
 
   private boolean closed;
 

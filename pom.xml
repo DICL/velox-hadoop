@@ -31,7 +31,7 @@
     <properties>
       <hadoop.version>2.7.3</hadoop.version>
       <libveloxdfs.version>1.0</libveloxdfs.version>
-      <velox.dir>/home/deukyeon/VeloxDFS</velox.dir>
+      <velox.dir>/home/vicente/buildDFS</velox.dir>
       <skipTests>true</skipTests>
     </properties>
 
@@ -53,7 +53,7 @@
         <artifactId>veloxdfs</artifactId>
         <version>${libveloxdfs.version}</version>
         <scope>system</scope>
-        <systemPath>${velox.dir}/build/java/veloxdfs.jar</systemPath>
+        <systemPath>${velox.dir}/java/veloxdfs.jar</systemPath>
       </dependency>
 
       <dependency>

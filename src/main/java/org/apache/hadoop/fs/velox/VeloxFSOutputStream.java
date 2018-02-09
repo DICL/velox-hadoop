@@ -38,7 +38,7 @@ import org.apache.commons.logging.LogFactory;
  * Velox instance.
  */
 public class VeloxFSOutputStream extends OutputStream {
-  //private static final Log LOG = LogFactory.getLog(VeloxFSOutputStream.class);
+  private static final Log LOG = LogFactory.getLog(VeloxFSOutputStream.class);
 
   private boolean closed;
 
@@ -56,10 +56,12 @@ public class VeloxFSOutputStream extends OutputStream {
 
   public VeloxFSOutputStream(VeloxDFS _vdfs, long _fd, int bufferSize) {
     super();
+    bufferSize = 8388608;
     closed = false;
     this.vdfs = _vdfs;
     this.fd = _fd;
     this.buffer = new byte[bufferSize];
+    LOG.info("VeloxFSOutputStream buffersize: " + bufferSize);
   }
 
   public void setVeloxDFS(VeloxDFS _vdfs) { vdfs = _vdfs; }

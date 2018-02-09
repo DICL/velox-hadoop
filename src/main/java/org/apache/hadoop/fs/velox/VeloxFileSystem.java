@@ -32,7 +32,6 @@ import java.util.TreeMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-//import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -52,11 +51,6 @@ import org.apache.hadoop.fs.velox.VeloxFSOutputStream;
 import com.dicl.velox.VeloxDFS;
 import com.dicl.velox.model.Metadata;
 import com.dicl.velox.model.BlockMetadata;
-//import velox.Configuration;
-
-
-//import java.net.InetAddress;
-//import java.net.UnknownHostException;
 
 public class VeloxFileSystem extends FileSystem {
   private static final Log LOG = LogFactory.getLog(VeloxFileSystem.class);
@@ -91,15 +85,6 @@ public class VeloxFileSystem extends FileSystem {
     //return path;
     Path ret = Path.getPathWithoutSchemeAndAuthority(path);
     return ret.toString().startsWith("/") ? ret : new Path("/" + ret.toString());
-
-    //return new Path(Path.SEPARATOR + path.getName());
-    
-    /*
-    if (path.isAbsolute()) {
-      return path;
-    }
-    return new Path(workingDir, path);
-    */
   }
 
   public URI getUri() {
@@ -120,9 +105,10 @@ public class VeloxFileSystem extends FileSystem {
     setConf(conf);
     this.workingDir = new Path("/");
     this.ugi = UserGroupInformation.getCurrentUser();
-    //
+
     if(this.veloxConf == null)
       this.veloxConf = new com.dicl.velox.Configuration(conf.get("fs.velox.json"));
+
     LOG.info("initialize with " + this.workingDir.toString() + " for " + this.ugi.getUserName());
 
     this.defaultFilePermission = FsPermission.getFileDefault().applyUMask(FsPermission.getUMask(getConf()));
@@ -136,7 +122,7 @@ public class VeloxFileSystem extends FileSystem {
    */
   @Override
   public FSDataInputStream open(Path f) throws IOException {
-    return open(f, getConf().getInt("fs.velox.inputstream.buffersize", 8388608));
+    return open(f, 8388608);
   }
 
   public FSDataInputStream open(Path f, int bufferSize) throws IOException {
@@ -215,16 +201,6 @@ public class VeloxFileSystem extends FileSystem {
     long fd = veloxdfs.open(path.toString());
     veloxdfs.close(fd);
 
-/*
-    Path p = path;
-    while(p != null && !p.isRoot()) {
-      LOG.info(p.toString());
-      long fd = veloxdfs.open(p.toString());
-      veloxdfs.close(fd);
-      p = p.getParent();
-    }
-    */
-
     return true;
   }
 
@@ -267,17 +243,6 @@ public class VeloxFileSystem extends FileSystem {
   public FileStatus[] listStatus(Path path) throws IOException {
     LOG.info("listStatus with " + path.toString());
 
-// try InetAddress.LocalHost first;
-//      NOTE -- InetAddress.getLocalHost().getHostName() will not work in certain environments.
-/*
-try {
-    String result = InetAddress.getLocalHost().getHostName();
-    LOG.info(result);
-} catch (UnknownHostException e) {
-    // failed;  try alternate means.
-}
-*/
-
     path = makeVeloxPath(path);
 
     if(!veloxdfs.exists(path.toString()))
@@ -311,6 +276,7 @@ try {
   public void setTimes(Path path, long mtime, long atime) throws IOException {
     // Doesn't support
   }
+
   /**
    * Create a new file and open an FSDataOutputStream that's connected to it.
    * @param path The file to create.
@@ -411,6 +377,20 @@ try {
     src = makeVeloxPath(src);
     dst = makeVeloxPath(dst);
 
+    if(!veloxdfs.exists(src.toString())) 
+      throw new FileNotFoundException();
+
+    long fd = veloxdfs.open(src.toString());
+    Metadata md = veloxdfs.getMetadata(fd);
+    LOG.info("Size of " + src.toString() + " is " + md.size);
+    byte[] buf = new byte[(int)md.size + 1];
+
+    long readBytes = veloxdfs.read(fd, 0, buf, 0, md.size); 
+
+    long dst_fd = veloxdfs.open(dst.toString());
+    veloxdfs.write(dst_fd, 0, buf, 0, md.size);
+
+    delete(src);
 
     // TODO: rename NOT implemented
 
@@ -452,11 +432,9 @@ try {
     for(int i=0; i<data.numBlock; i++) {
       LOG.info(new Path(data.blocks[i].name).getName().toString() + ", " + data.blocks[i].host + ", " + String.valueOf(curPos) + ", " + String.valueOf(data.blocks[i].size));
       locations[i] = new BlockLocation(
-        //new String[]{new Path(veloxConf.storagePath(), data.blocks[i].name).toString()}, 
-        new String[]{data.blocks[i].name},
-        new String[]{data.blocks[i].host}, 
-        curPos, data.blocks[i].size
-      );
+              new String[]{data.blocks[i].name},
+              new String[]{data.blocks[i].host}, 
+              curPos, data.blocks[i].size);
       curPos += data.blocks[i].size;
     }
 
@@ -469,20 +447,26 @@ try {
 	}
 
   public boolean delete(Path path, boolean recursive) throws IOException {
-    try {
       LOG.info("delete with " + path.toString() + ", " + String.valueOf(recursive));
-      path = makeVeloxPath(path);
 
-      if(recursive) {
-        FileStatus[] files = listStatus(path);
-        for(int i=0; i<files.length; i++) 
-          delete(files[i].getPath(), false);
-      }
-      veloxdfs.remove(path.toString());
-    } catch(FileNotFoundException e) {
-      return false;
-    }
-    return true;
+        return true;
+    //try {
+    //  LOG.info("delete with " + path.toString() + ", " + String.valueOf(recursive));
+    //  path = makeVeloxPath(path);
+    //  getFileStatus(path);
+
+    //  if(recursive) {
+    //    FileStatus[] files = listStatus(path);
+    //    for(int i=0; i<files.length; i++) 
+    //      delete(files[i].getPath(), false);
+    //  }
+    //  //if (recursive == false)
+    //      veloxdfs.remove(path.toString());
+    //} catch(FileNotFoundException e) {
+    //  LOG.info("I Am being compiled again");
+    //  return false;
+    //}
+    //return true;
   }
 
   @Override

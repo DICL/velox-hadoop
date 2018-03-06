@@ -47,7 +47,7 @@ public class VeloxFSInputStream extends FSInputStream {
 
   private VeloxDFS vdfs = null;
 
-  private static final int DEFAULT_BUFFER_SIZE = 8 * 1024 * 1024; // 32 MB
+  private static final int DEFAULT_BUFFER_SIZE = 1 << 21; // 2 MiB
 
   /**
    * Create a new VeloxFSInputStream.
@@ -68,7 +68,7 @@ public class VeloxFSInputStream extends FSInputStream {
 
     this.fileSize = fileSize;
     bufferSize = (int)Math.min((long)bufferSize, fileSize);
-    this.buffer = new byte[DEFAULT_BUFFER_SIZE];
+    this.buffer = new byte[bufferSize];
     LOG.info("Constructor finished for VeloxFSInputStream b:"+bufferSize + " f:" + fileSize);
   }
 

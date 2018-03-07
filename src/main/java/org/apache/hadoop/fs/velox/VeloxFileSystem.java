@@ -408,7 +408,7 @@ public class VeloxFileSystem extends FileSystem {
    */
   @Override
   public BlockLocation[] getFileBlockLocations(FileStatus file, long start, long len) throws IOException {
-    LOG.debug("getFileBlockLocations with " + file.getPath().toString() + ", " + String.valueOf(start) + ", " + String.valueOf(len) + ", " + file.getLen());
+    LOG.info("getFileBlockLocations with " + file.getPath().toString() + ", " + String.valueOf(start) + ", " + String.valueOf(len) + ", " + file.getLen());
 
     if (file.getLen() <= start) {
       return new BlockLocation[0];
@@ -418,8 +418,8 @@ public class VeloxFileSystem extends FileSystem {
 
     long fd = veloxdfs.open(path.toString());
 
-    Metadata data = veloxdfs.getMetadata(fd, (byte)0);
-    LOG.debug("The # of blocks : " + data.numBlock);
+    Metadata data = veloxdfs.getMetadata(fd, (byte)3);
+    LOG.info("The # of blocks : " + data.numBlock);
 
     long curPos = start;
     long endOff = curPos + len;
@@ -430,7 +430,7 @@ public class VeloxFileSystem extends FileSystem {
     // BlockLocation(String[] names, String[] hosts, long offset, long length)
     // TODO: getting hosts of replicas
     for(int i=0; i<data.numBlock; i++) {
-      LOG.debug(new Path(data.blocks[i].name).getName().toString() + ", " + data.blocks[i].host + ", " + String.valueOf(curPos) + ", " + String.valueOf(data.blocks[i].size));
+      LOG.info(new Path(data.blocks[i].name).getName().toString() + ", " + data.blocks[i].host + ", " + String.valueOf(curPos) + ", " + String.valueOf(data.blocks[i].size));
       locations[i] = new BlockLocation(
               new String[]{data.blocks[i].name},
               new String[]{data.blocks[i].host},

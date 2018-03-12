@@ -1,13 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
-    <properties>
-      <hadoop.version>2.7.3</hadoop.version>
-      <libveloxdfs.version>1.0</libveloxdfs.version>
-      <velox.dir>/home/deukyeon/VeloxDFS/build</velox.dir>
-      <skipTests>true</skipTests>
-    </properties>
-
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.apache.hadoop.fs.velox</groupId>
     <artifactId>velox-hadoop</artifactId>
@@ -35,16 +28,13 @@
       <url>scm:git:git@github.com:dicl/velox-hadoop.git</url>
     </scm>
 
-<!--
-    <repositories>
-    <repository>
-    <id>VeloxDFS</id>
-    <url>file:://${velox.dir}/build/java/</url>
-    </repository>
-    </repositories>
-
-    <dependencies>
-    -->
+    <properties>
+      <hadoop.version>2.7.3</hadoop.version>
+      <libveloxdfs.version>1.0</libveloxdfs.version>
+      <velox.dir>${env.VELOX_BUILD}</velox.dir>
+      <skipTests>true</skipTests>
+      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
 
     <dependencies>
 
@@ -88,11 +78,10 @@
             <skipTests>${skipTests}</skipTests>
           </configuration>
         </plugin>
-        <!--
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
-          <version></version>
+          <version>3.0.0</version>
           <executions>
             <execution>
               <id>attach-sources</id>
@@ -102,23 +91,6 @@
             </execution>
           </executions>
         </plugin>
-
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-javadoc-plugin</artifactId>
-          <configuration>
-            <skipTests>${skipTests}</skipTests>
-          </configuration>
-          <executions>
-            <execution>
-              <id>attach-javadocs</id>
-              <goals>
-                <goal>jar</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin>
-        -->
       </plugins>
     </build>
 </project>

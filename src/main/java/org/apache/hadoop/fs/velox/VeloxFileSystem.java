@@ -230,7 +230,7 @@ public class VeloxFileSystem extends FileSystem {
    * @return FileStatus object containing the stat information.
    */
   public FileStatus getFileStatus(Path path) throws IOException {
-    LOG.debug("getFileStatus with " + path.toString());
+    LOG.info("getFileStatus with " + path.toString());
     Path originalPath = path;
     path = makeVeloxPath(path);
 
@@ -439,8 +439,6 @@ public class VeloxFileSystem extends FileSystem {
     BlockLocation[] locations = new BlockLocation[data.numBlock];
 
     // Prototype of BlockLocation
-    // BlockLocation(String[] names, String[] hosts, long offset, long length)
-    // TODO: getting hosts of replicas
     for(int i=0; i<data.numBlock; i++) {
       LOG.info(new Path(data.blocks[i].name).getName().toString() + ", " + data.blocks[i].host + ", " + String.valueOf(curPos) + ", " + String.valueOf(data.blocks[i].size));
 

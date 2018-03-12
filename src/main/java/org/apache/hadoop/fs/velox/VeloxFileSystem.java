@@ -113,6 +113,9 @@ public class VeloxFileSystem extends FileSystem {
 
     this.defaultFilePermission = FsPermission.getFileDefault().applyUMask(FsPermission.getUMask(getConf()));
     this.defaultDirPermission = FsPermission.getDirDefault().applyUMask(FsPermission.getUMask(getConf()));
+
+    long fd = veloxdfs.open("/");
+    veloxdfs.close(fd);
   }
 
   /**
@@ -193,10 +196,14 @@ public class VeloxFileSystem extends FileSystem {
 
     path = makeVeloxPath(path);
 
-    if(path == null) return false;
-
-    if(path.getParent() != null && !path.isRoot())
+    try {
+      final FileStatus stat = getFileStatus(path.getParent());
+      if (!stat.isDirectory()) {
+        throw new IOException("parent is not a dir: " + path.getParent().toString());
+      }
+    } catch(FileNotFoundException e) {
       mkdirs(path.getParent(), perms);
+    }
 
     long fd = veloxdfs.open(path.toString());
     veloxdfs.close(fd);
@@ -227,16 +234,20 @@ public class VeloxFileSystem extends FileSystem {
     Path originalPath = path;
     path = makeVeloxPath(path);
 
-    if(!veloxdfs.exists(path.toString()))
+    if(!veloxdfs.exists(path.toString())) {
       throw new FileNotFoundException();
+    }
 
     long fd = veloxdfs.open(path.toString());
-    Metadata data = veloxdfs.getMetadata(fd, (byte)0);
+    Metadata data = veloxdfs.getMetadata(fd, (byte)2);
 
-    FileStatus ret = new FileStatus(data.size, false, data.replica, veloxConf.blockSize(), 0, 0,
-      (data.size == 0 ? this.defaultDirPermission : this.defaultFilePermission),
-      this.ugi.getUserName(), this.ugi.getPrimaryGroupName(), makeQualified(path));
-    return ret;
+    //long blockSize = (data.blocks == null || data.size == 0) ? veloxConf.blockSize() : (long) ((double) data.size / data.blocks.length);
+    long blockSize = (long) (((double) data.size / data.numBlock) + 0.5);
+
+    LOG.info(path.toString() + " size: " + data.size);
+
+    return new FileStatus(data.size, (data.size == 0 || "/".equals(data.name)), data.replica, blockSize, 0, 0,
+      null, this.ugi.getUserName(), this.ugi.getPrimaryGroupName(), makeQualified(path));
   }
 
   @Override
@@ -253,9 +264,10 @@ public class VeloxFileSystem extends FileSystem {
     FileStatus[] list = new FileStatus[metadata.length];
     for(int i=0; i<metadata.length; i++) {
       Metadata m = metadata[i];
-      list[i] = new FileStatus(m.size, false, m.replica, veloxConf.blockSize(), 0, 0,
-        (m.size == 0 ? this.defaultDirPermission : this.defaultFilePermission),
-        this.ugi.getUserName(), this.ugi.getPrimaryGroupName(), makeQualified(new Path(path, m.name)));
+      //long blockSize = (m.blocks == null || m.size == 0) ? veloxConf.blockSize() : (long) ((double) m.size / m.numBlock);
+      long blockSize = (long) (((double) m.size / m.numBlock) + 0.5);
+      list[i] = new FileStatus(m.size, (m.size == 0 || "/".equals(m.name)), m.replica, blockSize, 0, 0,
+        null, this.ugi.getUserName(), this.ugi.getPrimaryGroupName(), makeQualified(new Path(path, m.name)));
     }
 
     return list;
@@ -358,9 +370,6 @@ public class VeloxFileSystem extends FileSystem {
       boolean overwrite,
       int bufferSize, short replication, long blockSize,
       Progressable progress) throws IOException {
-
-    path = makeVeloxPath(path);
-
     return this.create(path, permission, overwrite,
         bufferSize, replication, blockSize, progress);
   }
@@ -380,6 +389,8 @@ public class VeloxFileSystem extends FileSystem {
     if(!veloxdfs.exists(src.toString()))
       throw new FileNotFoundException();
 
+    return veloxdfs.rename(src.toString(), dst.toString());
+/*
     long fd = veloxdfs.open(src.toString());
     Metadata md = veloxdfs.getMetadata(fd, (byte)0);
     LOG.debug("Size of " + src.toString() + " is " + md.size);
@@ -395,6 +406,7 @@ public class VeloxFileSystem extends FileSystem {
     // TODO: rename NOT implemented
 
     return true;
+*/
   }
 
   /**
@@ -408,7 +420,7 @@ public class VeloxFileSystem extends FileSystem {
    */
   @Override
   public BlockLocation[] getFileBlockLocations(FileStatus file, long start, long len) throws IOException {
-    LOG.info("getFileBlockLocations with " + file.getPath().toString() + ", " + String.valueOf(start) + ", " + String.valueOf(len) + ", " + file.getLen());
+    LOG.debug("getFileBlockLocations with " + file.getPath().toString() + ", " + String.valueOf(start) + ", " + String.valueOf(len) + ", " + file.getLen());
 
     if (file.getLen() <= start) {
       return new BlockLocation[0];
@@ -419,7 +431,7 @@ public class VeloxFileSystem extends FileSystem {
     long fd = veloxdfs.open(path.toString());
 
     Metadata data = veloxdfs.getMetadata(fd, (byte)3);
-    LOG.info("The # of blocks : " + data.numBlock);
+    LOG.debug("The # of blocks : " + data.numBlock);
 
     long curPos = start;
     long endOff = curPos + len;
@@ -431,6 +443,7 @@ public class VeloxFileSystem extends FileSystem {
     // TODO: getting hosts of replicas
     for(int i=0; i<data.numBlock; i++) {
       LOG.info(new Path(data.blocks[i].name).getName().toString() + ", " + data.blocks[i].host + ", " + String.valueOf(curPos) + ", " + String.valueOf(data.blocks[i].size));
+
       locations[i] = new BlockLocation(
               new String[]{data.blocks[i].name},
               new String[]{data.blocks[i].host},
@@ -481,6 +494,28 @@ public class VeloxFileSystem extends FileSystem {
     return veloxConf.blockSize();
   }
 
+/*
+  @Override
+  public long getDefaultBlockSize(Path p) {
+    LOG.debug("getDefaultBlockSize(Path " + p.toString() + ")");
+
+    try {
+      if(!exists(p))
+        return getDefaultBlockSize();
+    }
+    catch (IOException e) {
+        return getDefaultBlockSize();
+    }
+
+    p = makeVeloxPath(p);
+
+    long fd = veloxdfs.open(p.toString());
+
+    Metadata md = veloxdfs.getMetadata(fd, (byte)2);
+    return (long) Math.ceil(md.size / md.blocks.length);
+  }
+  */
+
   @Override
   public FsStatus getStatus(Path p) throws IOException {
     // TODO: not implemented yet
@@ -492,6 +527,8 @@ public class VeloxFileSystem extends FileSystem {
    **/
   @Override
   public boolean exists(Path f) throws IOException {
+    if(f == null) return false;
+
     LOG.debug("exists with " + f.toString());
     try {
       return getFileStatus(f) != null;

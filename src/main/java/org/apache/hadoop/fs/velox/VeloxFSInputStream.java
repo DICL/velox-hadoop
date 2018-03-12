@@ -69,7 +69,7 @@ public class VeloxFSInputStream extends FSInputStream {
     this.fileSize = fileSize;
     bufferSize = (int)Math.min((long)bufferSize, fileSize);
     this.buffer = new byte[bufferSize];
-    LOG.info("Constructor finished for VeloxFSInputStream b:"+bufferSize + " f:" + fileSize);
+    LOG.debug("Constructor finished for VeloxFSInputStream b:"+bufferSize + " f:" + fileSize);
   }
 
   public void setVeloxDFS(VeloxDFS _vdfs) { vdfs = _vdfs; }
@@ -158,7 +158,7 @@ public class VeloxFSInputStream extends FSInputStream {
 
   @Override
   public void close() throws IOException {
-    LOG.info("close for VeloxFSInputStream b:"+ mPos + " f:" + fileSize);
+    LOG.debug("close for VeloxFSInputStream b:"+ mPos + " f:" + fileSize);
     if (!closed) {
       vdfs.close(fd);
 

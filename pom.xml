@@ -1,11 +1,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
+    <properties>
+      <hadoop.version>2.7.3</hadoop.version>
+      <libveloxdfs.version>1.0</libveloxdfs.version>
+      <velox.dir>/home/deukyeon/VeloxDFS/build</velox.dir>
+      <skipTests>true</skipTests>
+    </properties>
+
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.apache.hadoop.fs.velox</groupId>
     <artifactId>velox-hadoop</artifactId>
     <packaging>jar</packaging>
-    <version>${libveloxdfs.version}</version>
+    <version>1.0</version>
     <name>velox-hadoop</name>
     <url>http://www.github.com/DICL/velox-hadoop</url>
     <description>VeloxDFS for Hadoop.</description>
@@ -28,13 +35,6 @@
       <url>scm:git:git@github.com:dicl/velox-hadoop.git</url>
     </scm>
 
-    <properties>
-      <hadoop.version>2.7.3</hadoop.version>
-      <libveloxdfs.version>1.0</libveloxdfs.version>
-      <velox.dir>/home/vicente/buildDFS</velox.dir>
-      <skipTests>true</skipTests>
-    </properties>
-
 <!--
     <repositories>
     <repository>
@@ -51,7 +51,7 @@
       <dependency>
         <groupId>com.dicl.velox</groupId>
         <artifactId>veloxdfs</artifactId>
-        <version>${libveloxdfs.version}</version>
+        <version>1.0</version>
         <scope>system</scope>
         <systemPath>${velox.dir}/java/veloxdfs.jar</systemPath>
       </dependency>
@@ -59,6 +59,12 @@
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-common</artifactId>
+        <version>${hadoop.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-mapreduce-client-core</artifactId>
         <version>${hadoop.version}</version>
       </dependency>
 
@@ -82,9 +88,11 @@
             <skipTests>${skipTests}</skipTests>
           </configuration>
         </plugin>
+        <!--
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
+          <version></version>
           <executions>
             <execution>
               <id>attach-sources</id>
@@ -94,7 +102,7 @@
             </execution>
           </executions>
         </plugin>
-        <!--
+
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>

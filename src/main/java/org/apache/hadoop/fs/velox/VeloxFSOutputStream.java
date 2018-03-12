@@ -56,12 +56,13 @@ public class VeloxFSOutputStream extends OutputStream {
 
   public VeloxFSOutputStream(VeloxDFS _vdfs, long _fd, int bufferSize) {
     super();
-    bufferSize = 8388608;
+    //bufferSize = 8388608;
+    //bufferSize = 64 * 1024 * 1024;
     closed = false;
     this.vdfs = _vdfs;
     this.fd = _fd;
     this.buffer = new byte[bufferSize];
-    LOG.info("VeloxFSOutputStream buffersize: " + bufferSize);
+    LOG.debug("VeloxFSOutputStream buffersize: " + bufferSize);
   }
 
   public void setVeloxDFS(VeloxDFS _vdfs) { vdfs = _vdfs; }
@@ -119,7 +120,8 @@ public class VeloxFSOutputStream extends OutputStream {
     if (bufUsed == 0)
       return;
       
-    long ret = vdfs.write(fd, getPos(), buffer, 0, bufUsed);
+    // The size of blocks requested by Hadoop is 64 MB
+    long ret = vdfs.write(fd, getPos(), buffer, 0, bufUsed, 64 * 1024 * 1024);
     if (ret < 0)
       throw new IOException("vdfs.write: ret=" + ret);
 

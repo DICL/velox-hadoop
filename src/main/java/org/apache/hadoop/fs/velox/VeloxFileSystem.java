@@ -230,7 +230,7 @@ public class VeloxFileSystem extends FileSystem {
    * @return FileStatus object containing the stat information.
    */
   public FileStatus getFileStatus(Path path) throws IOException {
-    LOG.info("getFileStatus with " + path.toString());
+    LOG.debug("getFileStatus with " + path.toString());
     Path originalPath = path;
     path = makeVeloxPath(path);
 
@@ -243,8 +243,6 @@ public class VeloxFileSystem extends FileSystem {
 
     //long blockSize = (data.blocks == null || data.size == 0) ? veloxConf.blockSize() : (long) ((double) data.size / data.blocks.length);
     long blockSize = (long) (((double) data.size / data.numBlock) + 0.5);
-
-    LOG.info(path.toString() + " size: " + data.size);
 
     return new FileStatus(data.size, (data.size == 0 || "/".equals(data.name)), data.replica, blockSize, 0, 0,
       null, this.ugi.getUserName(), this.ugi.getPrimaryGroupName(), makeQualified(path));
@@ -387,9 +385,12 @@ public class VeloxFileSystem extends FileSystem {
     dst = makeVeloxPath(dst);
 
     if(!veloxdfs.exists(src.toString()))
-      throw new FileNotFoundException();
+      throw new IOException(src.toString() + " doesn't exist.");
 
-    return veloxdfs.rename(src.toString(), dst.toString());
+    if(!veloxdfs.rename(src.toString(), dst.toString()))
+      throw new IOException("failed to rename " + src.toString() + " to " + dst.toString());
+
+    return true;
 /*
     long fd = veloxdfs.open(src.toString());
     Metadata md = veloxdfs.getMetadata(fd, (byte)0);
@@ -458,26 +459,27 @@ public class VeloxFileSystem extends FileSystem {
     }
 
   public boolean delete(Path path, boolean recursive) throws IOException {
-      LOG.debug("delete with " + path.toString() + ", " + String.valueOf(recursive));
+    return true;
+/*
+    LOG.debug("delete with " + path.toString() + ", " + String.valueOf(recursive));
 
-        return true;
-    //try {
-    //  LOG.debug("delete with " + path.toString() + ", " + String.valueOf(recursive));
-    //  path = makeVeloxPath(path);
-    //  getFileStatus(path);
+    try {
+      path = makeVeloxPath(path);
+      getFileStatus(path);
 
-    //  if(recursive) {
-    //    FileStatus[] files = listStatus(path);
-    //    for(int i=0; i<files.length; i++)
-    //      delete(files[i].getPath(), false);
-    //  }
-    //  //if (recursive == false)
-    //      veloxdfs.remove(path.toString());
-    //} catch(FileNotFoundException e) {
-    //  LOG.debug("I Am being compiled again");
-    //  return false;
-    //}
-    //return true;
+      if(recursive) {
+        FileStatus[] files = listStatus(path);
+        for(int i=0; i<files.length; i++)
+          delete(files[i].getPath(), false);
+      }
+      //if (recursive == false)
+        veloxdfs.remove(path.toString());
+    } catch(FileNotFoundException e) {
+      LOG.debug("I Am being compiled again");
+      return false;
+    }
+    return true;
+*/
   }
 
   @Override

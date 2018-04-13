@@ -1,0 +1,5 @@
+* Make sure $VELOX_HOME and $VELOX_BUILD on your environment
+
+* "install.sh" will install VeloxDFS package in your local
+
+* "mvn package" will compile sources and make a jar to distribute

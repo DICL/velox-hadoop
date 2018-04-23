@@ -122,7 +122,7 @@ public class VeloxFSOutputStream extends OutputStream {
       
     LOG.info("FLUSH");
     // The size of blocks requested by Hadoop is 64 MB
-    long ret = vdfs.write(fd, getPos(), buffer, 0, bufUsed, 64 * 1024 * 1024);
+    long ret = vdfs.write(fd, getPos(), buffer, 0, bufUsed); // , 64 * 1024 * 1024);
     if (ret < 0)
       throw new IOException("vdfs.write: ret=" + ret);
 

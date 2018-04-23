@@ -20,6 +20,7 @@ package org.apache.hadoop.mapreduce.velox;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import java.util.concurrent.TimeUnit;
@@ -65,6 +66,7 @@ import org.apache.hadoop.mapred.InvalidInputException;
 @InterfaceAudience.Public
 @InterfaceStability.Stable
 public class VeloxFileInputFormat extends TextInputFormat{
+  private static final Log LOG = LogFactory.getLog(VeloxFileInputFormat.class);
   ///**
   // * A factory that makes the split for this class. It can be overridden
   // * by sub-classes to make sub-types
@@ -94,7 +96,7 @@ public class VeloxFileInputFormat extends TextInputFormat{
     //long maxSize = getMaxSplitSize(job);
 
     // generate splits
-    //LOG.info("VeloxInputFormat called");
+    LOG.info("VeloxInputFormat called");
     List<InputSplit> splits = new ArrayList<InputSplit>();
     List<FileStatus> files = listStatus(job);
     for (FileStatus file: files) {
@@ -131,6 +133,12 @@ public class VeloxFileInputFormat extends TextInputFormat{
           */
 
           for(BlockLocation blkLocation : blkLocations) {
+              LOG.info("P: " + path +
+                       " off: " + blkLocation.getOffset() +
+                       " len: "  + blkLocation.getLength() +
+                       " host: "  + Arrays.toString(blkLocation.getHosts()) +
+                       " hostcached: "  + Arrays.toString(blkLocation.getCachedHosts()));
+
             splits.add(makeSplit(path, blkLocation.getOffset(), blkLocation.getLength(),
                         blkLocation.getHosts(),
                         blkLocation.getCachedHosts()));

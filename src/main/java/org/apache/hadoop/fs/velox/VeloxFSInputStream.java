@@ -42,8 +42,11 @@ public class VeloxFSInputStream extends FSInputStream {
   private long fd = 0;
   private long mPos = 0;
   private long fileSize = 0;
+  private long remaining_bytes= 0;
+  private long total_read_bytes= 0;
   private byte[] buffer;
   private int bufferOffset = 0;
+  private boolean EOF = false;
 
   private VeloxDFS vdfs = null;
 
@@ -68,8 +71,9 @@ public class VeloxFSInputStream extends FSInputStream {
 
     this.fileSize = fileSize;
     bufferSize = (int)Math.min((long)bufferSize, fileSize);
+    bufferSize = (int)Math.min((long)bufferSize, DEFAULT_BUFFER_SIZE);
     this.buffer = new byte[bufferSize];
-    LOG.debug("Constructor finished for VeloxFSInputStream b:"+bufferSize + " f:" + fileSize);
+    LOG.info("Constructor finished for VeloxFSInputStream b:"+bufferSize + " f:" + fileSize);
   }
 
   public void setVeloxDFS(VeloxDFS _vdfs) { vdfs = _vdfs; }
@@ -102,11 +106,10 @@ public class VeloxFSInputStream extends FSInputStream {
    */
   @Override
   public synchronized int available() throws IOException {
-      if ((fileSize - mPos) >= (1L << 31L)) {
-          return (int) (1 << 30);
-      } else {
-          return (int) (fileSize - mPos);
-      }
+      int remaining = 0;
+      remaining = (int) (fileSize - mPos);
+
+      return Math.max(remaining, Math.max(0, (int)remaining_bytes));
   }
 
   public synchronized void seek(long targetPos) throws IOException {
@@ -129,41 +132,53 @@ public class VeloxFSInputStream extends FSInputStream {
    */
   @Override
   public synchronized int read() throws IOException {
-
-    if(available() <= 0) return -1;
+    if (EOF) return -1;
 
     bufferOffset %= buffer.length;
-    if(bufferOffset == 0) {
-      read(getPos(), buffer, bufferOffset, buffer.length);
+
+    if (bufferOffset == 0) {
+      remaining_bytes = read(getPos(), buffer, bufferOffset, buffer.length);
     }
 
-    mPos = getPos() + 1;
+    // If we could read bytes
+    if (remaining_bytes > 0) {
+        int value = (int)(buffer[bufferOffset] & 0xFF);
 
-    return (int)(buffer[bufferOffset++] & 0xFF);
+        bufferOffset++;
+        mPos = getPos() + 1;
+        remaining_bytes--;
+
+        return value;
+    } 
+
+    return -1;
   }
 
   @Override
   public synchronized int read(long pos, byte[] buf, int off, int len)
     throws IOException {
-    if(off < 0 || len < 0 || buf.length - off < len)
+    if (off < 0 || len < 0 || buf.length - off < len)
       throw new IndexOutOfBoundsException();
 
-    if(available() <= 0) return -1;
-    if(len == 0) return 0;
+    if (len == 0) return 0;
 
     long readBytes = vdfs.read(fd, pos, buf, off, len); 
+    total_read_bytes += readBytes;
+
+    if (readBytes == -1)
+        EOF = true;
 
     return (int)readBytes;
   }
 
   @Override
   public void close() throws IOException {
-    LOG.debug("close for VeloxFSInputStream b:"+ mPos + " f:" + fileSize);
+    LOG.info("close for VeloxFSInputStream read_Bytes: " + total_read_bytes + " pos: " + getPos() + " remain: " + remaining_bytes );
     if (!closed) {
       vdfs.close(fd);
 
       closed = true;
-      seek(0);
+      //seek(0);
       bufferOffset = 0;
     }
   }

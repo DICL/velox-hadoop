@@ -459,6 +459,7 @@ public class VeloxFileSystem extends FileSystem {
     }
 
   public boolean delete(Path path, boolean recursive) throws IOException {
+      LOG.debug("delete with " + path.toString() + ", " + String.valueOf(recursive));
     return true;
 /*
     LOG.debug("delete with " + path.toString() + ", " + String.valueOf(recursive));

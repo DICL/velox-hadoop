@@ -27,7 +27,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
-//import org.apache.hadoop.mapreduce.velox.VeloxFileInputFormat;
+import org.apache.hadoop.mapreduce.velox.VeloxFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
@@ -81,9 +81,9 @@ public class WordCount {
     job.setReducerClass(IntSumReducer.class);
     job.setOutputKeyClass(Text.class);
     job.setOutputValueClass(IntWritable.class);
-   // job.setInputFormatClass(VeloxFileInputFormat.class);
+    job.setInputFormatClass(VeloxFileInputFormat.class);
     for (int i = 0; i < otherArgs.length - 1; ++i) {
-      FileInputFormat.addInputPath(job, new Path(otherArgs[i]));
+      VeloxFileInputFormat.addInputPath(job, new Path(otherArgs[i]));
     }
     FileOutputFormat.setOutputPath(job,
       new Path(otherArgs[otherArgs.length - 1]));

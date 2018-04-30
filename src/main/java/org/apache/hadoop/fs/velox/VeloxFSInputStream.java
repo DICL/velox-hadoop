@@ -131,7 +131,8 @@ public class VeloxFSInputStream extends FSInputStream {
    * @return the next byte.
    */
   @Override
-  public synchronized int read() throws IOException {
+  //public synchronized int read() throws IOException {
+  public int read() throws IOException {
     if (EOF) return -1;
 
     bufferOffset %= buffer.length;
@@ -145,7 +146,8 @@ public class VeloxFSInputStream extends FSInputStream {
         int value = (int)(buffer[bufferOffset] & 0xFF);
 
         bufferOffset++;
-        mPos = getPos() + 1;
+        //mPos = getPos() + 1;
+        mPos++;
         remaining_bytes--;
 
         return value;

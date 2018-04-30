@@ -130,10 +130,12 @@ public class VeloxFileSystem extends FileSystem {
 
   public FSDataInputStream open(Path f, int bufferSize) throws IOException {
     f = makeVeloxPath(f);
-    LOG.debug("open with " + f.toString());
+    LOG.info("open with " + f.toString());
 
     long fd = veloxdfs.open(f.toString());
     Metadata md = veloxdfs.getMetadata(fd, (byte)0);
+
+    LOG.info("Finish open"); 
 
     return new FSDataInputStream(new VeloxFSInputStream(veloxdfs, fd, bufferSize, md.size));
   }

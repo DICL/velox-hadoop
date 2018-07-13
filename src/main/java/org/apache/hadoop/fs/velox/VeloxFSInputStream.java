@@ -138,6 +138,7 @@ public class VeloxFSInputStream extends FSInputStream {
     bufferOffset %= buffer.length;
 
     if (bufferOffset == 0) {
+      bufferOffset = 0;
       remaining_bytes = read(getPos(), buffer, bufferOffset, buffer.length);
     }
 
@@ -167,7 +168,7 @@ public class VeloxFSInputStream extends FSInputStream {
     long readBytes = vdfs.read(fd, pos, buf, off, len); 
     total_read_bytes += readBytes;
 
-    if (readBytes == -1)
+    if (readBytes <= 0)
         EOF = true;
 
     return (int)readBytes;

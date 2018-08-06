@@ -32,6 +32,12 @@ public class ExampleDriver {
     try {
       pgd.addClass("wordcount", WordCount.class, 
                    "A map/reduce program that counts the words in the input files.");
+
+      pgd.addClass("grep", Grep.class, 
+                   "A map/reduce program that counts the words in the input files.");
+
+      pgd.addClass("AggregateWordCount", AggregateWordCount.class, 
+                   "A map/reduce program that counts the words in the input files.");
       exitCode = pgd.run(argv);
     }
     catch(Throwable e){

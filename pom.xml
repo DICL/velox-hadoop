@@ -31,7 +31,7 @@
     <properties>
       <hadoop.version>2.7.3</hadoop.version>
       <libveloxdfs.version>1.0</libveloxdfs.version>
-      <velox.dir>${env.VELOX_BUILD}</velox.dir>
+      <velox.dir>${env.JAVA_LIBRARY_PATH}</velox.dir>
       <skipTests>true</skipTests>
       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>

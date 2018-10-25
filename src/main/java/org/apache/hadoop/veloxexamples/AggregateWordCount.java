@@ -16,15 +16,17 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.examples;
+package org.apache.hadoop.veloxexamples;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 import java.util.Map.Entry;
 
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.velox.VeloxFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.aggregate.ValueAggregatorBaseDescriptor;
 import org.apache.hadoop.mapreduce.lib.aggregate.ValueAggregatorJob;
 
@@ -71,6 +73,8 @@ public class AggregateWordCount {
     Job job = ValueAggregatorJob.createValueAggregatorJob(args
         , new Class[] {WordCountPlugInClass.class});
     job.setJarByClass(AggregateWordCount.class);
+
+    job.setInputFormatClass(VeloxFileInputFormat.class);
     int ret = job.waitForCompletion(true) ? 0 : 1;
     System.exit(ret);
   }

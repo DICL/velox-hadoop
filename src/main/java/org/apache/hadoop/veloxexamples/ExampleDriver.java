@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.examples;
+package org.apache.hadoop.veloxexamples;
 
 import org.apache.hadoop.util.ProgramDriver;
 

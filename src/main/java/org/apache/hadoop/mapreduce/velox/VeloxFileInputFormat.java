@@ -63,27 +63,8 @@ import org.apache.hadoop.mapred.InvalidInputException;
  * {@link #isSplitable(JobContext, Path)} method to ensure input-files are
  * not split-up and are processed as a whole by {@link Mapper}s.
  */
-@InterfaceAudience.Public
-@InterfaceStability.Stable
 public class VeloxFileInputFormat extends TextInputFormat{
   private static final Log LOG = LogFactory.getLog(VeloxFileInputFormat.class);
-  ///**
-  // * A factory that makes the split for this class. It can be overridden
-  // * by sub-classes to make sub-types
-  // */
-  //protected FileSplit makeSplit(Path file, long start, long length, 
-  //                              String[] hosts) {
-  //  return new FileSplit(file, start, length, hosts);
-  //}
-  //
-  ///**
-  // * A factory that makes the split for this class. It can be overridden
-  // * by sub-classes to make sub-types
-  // */
-  //protected FileSplit makeSplit(Path file, long start, long length, 
-  //                              String[] hosts, String[] inMemoryHosts) {
-  //  return new FileSplit(file, start, length, hosts, inMemoryHosts);
-  //}
 
   /** 
    * Generate the list of files and make them into FileSplits.
@@ -91,76 +72,50 @@ public class VeloxFileInputFormat extends TextInputFormat{
    * @throws IOException
    */
   public List<InputSplit> getSplits(JobContext job) throws IOException {
-    StopWatch sw = new StopWatch().start();
-    //long minSize = Math.max(getFormatMinSplitSize(), getMinSplitSize(job));
-    //long maxSize = getMaxSplitSize(job);
-
-    // generate splits
-    LOG.info("VeloxInputFormat called");
     List<InputSplit> splits = new ArrayList<InputSplit>();
     List<FileStatus> files = listStatus(job);
-    for (FileStatus file: files) {
+    StopWatch sw = new StopWatch().start();
+
+    for (FileStatus file : files) {
       Path path = file.getPath();
       long length = file.getLen();
-      if (length != 0) {
-        BlockLocation[] blkLocations;
-        if (file instanceof LocatedFileStatus) {
+      BlockLocation[] blkLocations;
+
+      // Locate file
+      if (file instanceof LocatedFileStatus) {
           blkLocations = ((LocatedFileStatus) file).getBlockLocations();
-        } else {
+
+      } else {
           FileSystem fs = path.getFileSystem(job.getConfiguration());
           blkLocations = fs.getFileBlockLocations(file, 0, length);
-        }
-        if (isSplitable(job, path)) {
-        /*
-          long blockSize = file.getBlockSize();
-          long splitSize = computeSplitSize(blockSize, minSize, maxSize);
+      }
 
-          long bytesRemaining = length;
-          while (((double) bytesRemaining)/splitSize > SPLIT_SLOP) {
-            int blkIndex = getBlockIndex(blkLocations, length-bytesRemaining);
-            splits.add(makeSplit(path, length-bytesRemaining, splitSize,
-                        blkLocations[blkIndex].getHosts(),
-                        blkLocations[blkIndex].getCachedHosts()));
-            bytesRemaining -= splitSize;
-          }
-      
-          if (bytesRemaining != 0) {
-            int blkIndex = getBlockIndex(blkLocations, length-bytesRemaining);
-            splits.add(makeSplit(path, length-bytesRemaining, bytesRemaining,
-                       blkLocations[blkIndex].getHosts(),
-                       blkLocations[blkIndex].getCachedHosts()));
-          }
-          */
+      if (isSplitable(job, path)) {
 
           for(BlockLocation blkLocation : blkLocations) {
               LOG.info("P: " + path +
-                       " off: " + blkLocation.getOffset() +
-                       " len: "  + blkLocation.getLength() +
-                       " host: "  + Arrays.toString(blkLocation.getHosts()) +
-                       " hostcached: "  + Arrays.toString(blkLocation.getCachedHosts()));
+                      " off: " + blkLocation.getOffset() +
+                      " len: "  + blkLocation.getLength() +
+                      " host: "  + Arrays.toString(blkLocation.getHosts()) +
+                      " hostcached: "  + Arrays.toString(blkLocation.getCachedHosts()));
 
-            splits.add(makeSplit(path, blkLocation.getOffset(), blkLocation.getLength(),
-                        blkLocation.getHosts(),
-                        blkLocation.getCachedHosts()));
+              splits.add(makeSplit(path, blkLocation.getOffset(), blkLocation.getLength(),
+                          blkLocation.getHosts(),
+                          blkLocation.getCachedHosts()));
           }
-        } else { // not splitable
+
+      } else { 
           splits.add(makeSplit(path, 0, length, blkLocations[0].getHosts(),
                       blkLocations[0].getCachedHosts()));
-        }
-      } else { 
-        //Create empty hosts array for zero length files
-        splits.add(makeSplit(path, 0, length, new String[0]));
       }
     }
     // Save the number of input files for metrics/loadgen
     job.getConfiguration().setLong(NUM_INPUT_FILES, files.size());
+
     sw.stop();
-//    if (LOG.isDebugEnabled()) {
-//      LOG.debug("Total # of splits generated by getSplits: " + splits.size()
-//          + ", TimeTaken: " + sw.now(TimeUnit.MILLISECONDS));
-//    }
-//      LOG.info("Total # of splits generated by getSplits: " + splits.size()
-//          + ", TimeTaken: " + sw.now(TimeUnit.MILLISECONDS));
+
+    LOG.info("VELOXINPUTFORMAT Total # of splits generated by getSplits: " + splits.size()
+            + ", TimeTaken: " + sw.now(TimeUnit.MILLISECONDS));
     return splits;
   }
 

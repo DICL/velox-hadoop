@@ -70,7 +70,7 @@
           <configuration>
             <archive>
               <manifest>
-                <mainClass>org.apache.hadoop.examples.ExampleDriver</mainClass>
+                <mainClass>org.apache.hadoop.veloxexamples.ExampleDriver</mainClass>
               </manifest>
             </archive>
           </configuration>

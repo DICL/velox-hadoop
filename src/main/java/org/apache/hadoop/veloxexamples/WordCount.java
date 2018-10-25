@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.examples;
+package org.apache.hadoop.veloxexamples;
 
 import java.io.IOException;
 import java.util.StringTokenizer;
@@ -83,7 +83,7 @@ public class WordCount {
     job.setOutputValueClass(IntWritable.class);
     job.setInputFormatClass(VeloxFileInputFormat.class);
     for (int i = 0; i < otherArgs.length - 1; ++i) {
-      VeloxFileInputFormat.addInputPath(job, new Path(otherArgs[i]));
+      FileInputFormat.addInputPath(job, new Path(otherArgs[i]));
     }
     FileOutputFormat.setOutputPath(job,
       new Path(otherArgs[otherArgs.length - 1]));

@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.examples;
+package org.apache.hadoop.veloxexamples;
 
 import java.util.Random;
 
@@ -27,6 +27,7 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.map.InverseMapper;
 import org.apache.hadoop.mapreduce.lib.map.RegexMapper;
@@ -65,7 +66,7 @@ public class Grep extends Configured implements Tool {
       grepJob.setJarByClass(Grep.class);
 
       grepJob.setInputFormatClass(VeloxFileInputFormat.class);
-      VeloxFileInputFormat.setInputPaths(grepJob, args[0]);
+      FileInputFormat.setInputPaths(grepJob, args[0]);
 
       grepJob.setMapperClass(RegexMapper.class);
 
@@ -73,7 +74,7 @@ public class Grep extends Configured implements Tool {
       grepJob.setReducerClass(LongSumReducer.class);
 
       FileOutputFormat.setOutputPath(grepJob, tempDir);
-      grepJob.setOutputFormatClass(FileOutputFormat.class);
+      grepJob.setOutputFormatClass(SequenceFileOutputFormat.class);
       grepJob.setOutputKeyClass(Text.class);
       grepJob.setOutputValueClass(LongWritable.class);
 
@@ -84,7 +85,7 @@ public class Grep extends Configured implements Tool {
       sortJob.setJarByClass(Grep.class);
 
       FileInputFormat.setInputPaths(sortJob, tempDir);
-      sortJob.setInputFormatClass(FileInputFormat.class);
+      sortJob.setInputFormatClass(SequenceFileInputFormat.class);
 
       sortJob.setMapperClass(InverseMapper.class);
 

@@ -443,7 +443,7 @@ public class VeloxFileSystem extends FileSystem {
 
     // Prototype of BlockLocation
     for(int i=0; i<data.numBlock; i++) {
-      LOG.info(new Path(data.blocks[i].name).getName().toString() + ", " + data.blocks[i].host + ", " + String.valueOf(curPos) + ", " + String.valueOf(data.blocks[i].size));
+      LOG.debug(new Path(data.blocks[i].name).getName().toString() + ", " + data.blocks[i].host + ", " + String.valueOf(curPos) + ", " + String.valueOf(data.blocks[i].size));
 
       locations[i] = new BlockLocation(
               new String[]{data.blocks[i].name},

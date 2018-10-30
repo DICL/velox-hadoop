@@ -1,27 +1,37 @@
 package org.dicl.velox.dfs;
 
+import org.apache.hadoop.mapreduce.InputSplit;
+import org.apache.hadoop.mapreduce.RecordReader;
+import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.mapreduce.RecordReader;
+import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import com.dicl.velox.VeloxDFS;
+import org.apache.hadoop.conf.Configuration;
 
-public class VDFSRecordReader extends RecordReader<LongWritable, Text> implements Writable {
+
+import java.util.ArrayList;
+import java.io.IOException;
+import java.lang.InterruptedException;
+
+public class VDFSRecordReader extends RecordReader<LongWritable, Text> {
     private static final Log LOG = LogFactory.getLog(VDFSRecordReader.class);
 
     private VeloxDFS vdfs = null;
     private long pos = 0;
     private long size = 0;
     private int fd = 0;
-    private long bufferOffset = 0;
-    private long remaining_bytes = 0;
+    private int bufferOffset = 0;
+    private int remaining_bytes = 0;
     private byte[] buffer;
     private byte[] lineBuffer;
     private static final int DEFAULT_BUFFER_SIZE = 2 << 20; // 2 MiB
     private static final int DEFAULT_LINE_BUFFER_SIZE = 8 << 10; // 8 KiB
     private LongWritable key;
     private Text value;
+    private VDFSInputSplit split;
 
     public VDFSRecordReader() { 
 
@@ -34,20 +44,19 @@ public class VDFSRecordReader extends RecordReader<LongWritable, Text> implement
      * @throws InterruptedException
      */
     @Override
-    public void initialize(InputSplit split, TaskAttemptContext context) 
+    public void initialize(InputSplit split_, TaskAttemptContext context) 
         throws IOException, InterruptedException {
-        VDFSInputSplit split = (VDFSInputSplit) split;
+        VDFSInputSplit split = (VDFSInputSplit) split_;
 
         vdfs = new VeloxDFS();
-        fd = vdfs.open(split.file_name);
         Configuration conf = context.getConfiguration();
 
-        long bufferSize =     conf.getInt("fs.velox.recordreader.buffersize", DEFAULT_BUFFER_SIZE);
-        long lineBufferSize = conf.getInt("fs.velox.recordreader.linebuffersize", DEFAULT_LINE_BUFFER_SIZE);
+        int bufferSize =     conf.getInt("fs.velox.recordreader.buffersize", DEFAULT_BUFFER_SIZE);
+        int lineBufferSize = conf.getInt("fs.velox.recordreader.linebuffersize", DEFAULT_LINE_BUFFER_SIZE);
 
         buffer = new byte[bufferSize];
         lineBuffer = new byte[lineBufferSize];
-        LOG.info("Initialized RecordReader for: " + split.file_name + " size: " + split.size);
+        LOG.info("Initialized RecordReader for: " + split.logical_block_name + " size: " + split.size);
     }
 
     /**
@@ -65,30 +74,32 @@ public class VDFSRecordReader extends RecordReader<LongWritable, Text> implement
         key.set(pos);
 
         // Computing value
-        String line;
-        long lpos = 0;
+        String line = "";
+        int lpos = 0;
         while (lpos < DEFAULT_LINE_BUFFER_SIZE) {
-            char c = read();
+            byte c = read();
             if (c == '\n') {
                 line = new String(lineBuffer, 0, lpos);
                 break;
-            } else if ((int)c == -1) {
-                return false
-            }
+            } 
+            //else if (c == -1) {
+             //   return false;
+            //}
 
             lineBuffer[lpos++] = c;
         }
         value.set(line);
+        return true;
     }
 
-    private char read() {
+    private byte read() {
         bufferOffset %= buffer.length;
         if (bufferOffset == 0 || remaining_bytes == 0) {
             bufferOffset = 0;
-            remaining_bytes = read_logical(pos, buffer, bufferOffset, buffer.length);
+            remaining_bytes = read(pos, buffer, bufferOffset, buffer.length);
         }
 
-        char ret = buffer[bufferOffset];
+        byte ret = buffer[bufferOffset];
 
         // Increment/decrement counters
         pos++;
@@ -96,6 +107,27 @@ public class VDFSRecordReader extends RecordReader<LongWritable, Text> implement
         bufferOffset++;
 
         return ret;
+    }
+    public int read(long pos, byte[] buf, int off, int len) {
+
+        // Choose chunk
+        int i = 0; long total_size = 0;
+        ArrayList<Chunk> chunks = split.chunks;
+        for (Chunk chunk : chunks) {
+            if (chunk.size + total_size > pos) {
+                return i;
+            }
+            total_size += chunk.size;
+            i++;
+        }
+
+        long chunk_offset = pos - total_size;
+
+        //Chunk the_chunk = chunks.at(i);
+
+//        vdfs.read_chunk(the_chunk.name, the_chunk.host, chunk_offset, buf, off, len);
+
+        return 1;
     }
 
     /**

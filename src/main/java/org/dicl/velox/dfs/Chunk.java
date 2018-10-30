@@ -3,6 +3,9 @@ package org.dicl.velox.dfs;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 
 public class Chunk implements Writable {
     public String file_name;
@@ -19,7 +22,7 @@ public class Chunk implements Writable {
     public void readFields(DataInput in) throws IOException {
         file_name = Text.readString(in);
         size = in.readLong();
-        seq = in.readLong();
+        index = in.readLong();
     }
 
     @Override

@@ -2,45 +2,56 @@ package org.dicl.velox.dfs;
 
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.ArrayWritable;
+import java.util.Arrays;
 import java.util.ArrayList;
+import java.io.IOException;
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.lang.Object;
 
 public class VDFSInputSplit extends InputSplit implements Writable {
-    private ArrayList chunks;
-    private String logical_block_name;
-    private host;
+    public ArrayList<Chunk> chunks;
+    public String logical_block_name;
+    public String host;
+    public long size;
 
-    public VDFSInputSplit(String name, string host) {
+    public VDFSInputSplit(String name, String host, long size) {
         this.logical_block_name = name;
         this.host = host;
+        this.size = size;
     }
 
-    public addChunk(String fname, long size, long seq) {
+    public void addChunk(String fname, long size, long seq) {
         chunks.add(new Chunk(fname, size, seq));
     }
 
     @Override
     public String[] getLocations() throws IOException {
-        return host;
+        String[] s = new String[1]; 
+        s[0] = host;
+
+        return s;
     }
 
     @Override
     public long getLength() throws IOException {
-        return chunks.stream().mapToInt(o -> o.getSize()).sum(); // YAY Functional
+        return chunks.stream().mapToLong(o -> ((Chunk)o).size).sum(); // YAY Functional
     }
 
     @Override
     public void readFields(DataInput in) throws IOException {
         logical_block_name = Text.readString(in);
         ArrayWritable in_chunks = new ArrayWritable(Chunk.class);
-        in_chunks.readFields(in)
-        chunks = Arrays.asList(in_chunks.toArray());
+        in_chunks.readFields(in);
+        chunks = new ArrayList<Chunk>(Arrays.asList((Chunk[])in_chunks.toArray()));
     }
 
     @Override
     public void write(DataOutput out) throws IOException {
-        Text.writeString(out, file_name);
+        Text.writeString(out, logical_block_name);
         ArrayWritable in_chunks = new ArrayWritable(Chunk.class,
                 chunks.toArray(new Chunk[chunks.size()]));
         in_chunks.write(out);

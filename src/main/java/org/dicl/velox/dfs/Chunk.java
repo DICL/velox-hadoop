@@ -12,6 +12,8 @@ public class Chunk implements Writable {
     public long size;
     public long index;
 
+    public Chunk()  { }
+
     public Chunk(String file_name, long size, long index)  {
         this.file_name = file_name;
         this.index = index;

@@ -72,7 +72,7 @@
           <configuration>
             <archive>
               <manifest>
-                <mainClass>org.apache.hadoop.veloxexamples.ExampleDriver</mainClass>
+                <mainClass>org.dicl.velox.benchmark.ExampleDriver</mainClass>
               </manifest>
             </archive>
           </configuration>

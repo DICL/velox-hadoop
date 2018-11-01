@@ -18,7 +18,12 @@ public class VDFSInputSplit extends InputSplit implements Writable {
     public String host;
     public long size;
 
+    public VDFSInputSplit() {
+        chunks = new ArrayList<Chunk>();
+    }
+
     public VDFSInputSplit(String name, String host, long size) {
+        chunks = new ArrayList<Chunk>();
         this.logical_block_name = name;
         this.host = host;
         this.size = size;
@@ -44,6 +49,8 @@ public class VDFSInputSplit extends InputSplit implements Writable {
     @Override
     public void readFields(DataInput in) throws IOException {
         logical_block_name = Text.readString(in);
+        host = Text.readString(in);
+        size = in.readLong();
         ArrayWritable in_chunks = new ArrayWritable(Chunk.class);
         in_chunks.readFields(in);
         chunks = new ArrayList<Chunk>(Arrays.asList((Chunk[])in_chunks.toArray()));
@@ -52,9 +59,10 @@ public class VDFSInputSplit extends InputSplit implements Writable {
     @Override
     public void write(DataOutput out) throws IOException {
         Text.writeString(out, logical_block_name);
+        Text.writeString(out, host);
+        out.writeLong(size);
         ArrayWritable in_chunks = new ArrayWritable(Chunk.class,
                 chunks.toArray(new Chunk[chunks.size()]));
         in_chunks.write(out);
     }
-
 }

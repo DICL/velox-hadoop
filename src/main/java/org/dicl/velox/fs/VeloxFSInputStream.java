@@ -18,7 +18,7 @@
  * Implements the Hadoop FS interfaces to allow applications to store
  * files in Velox.
  */
-package org.apache.hadoop.fs.velox;
+package org.dicl.velox.fs;
 
 import java.io.IOException;
 import java.util.Arrays;

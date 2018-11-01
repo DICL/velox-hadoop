@@ -1,0 +1,41 @@
+plugins { 
+  id 'java'
+  id 'application'
+  id 'maven-publish'
+}
+
+repositories {
+    flatDir {
+        dirs "${System.env.JAVA_LIBRARY_PATH}/java" 
+    }
+
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.apache.hadoop:hadoop-client:2.7.3'
+    implementation 'com.dicl.velox:veloxdfs:1.0'
+}
+
+mainClassName = 'org.dicl.velox.benchmark.ExampleDriver'
+
+// The remaining part is to be compatible with Maven
+jar {
+  manifest {
+    attributes(
+      'Main-Class': 'org.dicl.velox.benchmark.ExampleDriver'
+    )
+  }
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = 'org.dicl.velox'
+            artifactId = 'velox-hadoop'
+            version = '1.0'
+
+            from components.java
+        }
+    }
+}

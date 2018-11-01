@@ -1,4 +1,4 @@
-package org.dicl.velox.dfs;
+package org.dicl.velox.mapreduce;
 
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;

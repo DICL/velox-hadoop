@@ -18,9 +18,7 @@
 
 package org.dicl.velox.benchmark;
 
-import org.dicl.velox.dfs.VDFSInputFormat;
-import org.dicl.velox.dfs.VDFSInputSplit;
-import org.dicl.velox.dfs.VDFSRecordReader;
+import org.dicl.velox.mapreduce.VDFSInputFormat;
 
 import java.io.IOException;
 import java.util.ArrayList;

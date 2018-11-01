@@ -1,4 +1,4 @@
-package org.dicl.velox.dfs;
+package org.dicl.velox.mapreduce;
 
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.io.LongWritable;

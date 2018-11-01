@@ -1,14 +1,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
-    <modelVersion>4.0.0</modelVersion>
-    <groupId>org.apache.hadoop.fs.velox</groupId>
-    <artifactId>velox-hadoop</artifactId>
-    <packaging>jar</packaging>
-    <version>1.0</version>
     <name>velox-hadoop</name>
+    <groupId>org.dicl.velox</groupId>
+    <artifactId>velox-hadoop</artifactId>
+    <modelVersion>4.0.0</modelVersion>
+    <version>1.0</version>
     <url>http://www.github.com/DICL/velox-hadoop</url>
     <description>VeloxDFS for Hadoop.</description>
+    <packaging>jar</packaging>
+
     <licenses>
       <license>
         <name>The Apache Software License, Version 2.0</name>
@@ -22,6 +23,7 @@
         <organizationUrl>http://dicl.unist.ac.kr</organizationUrl>
       </developer>
     </developers>
+
     <scm>
       <connection>scm:git:git@github.com:dicl/velox-hadoop.git</connection>
       <developerConnection>scm:git:git@github.com:dicl/velox-hadoop.git</developerConnection>

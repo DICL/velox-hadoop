@@ -19,7 +19,7 @@
  * files in VeloxDFS.
  */
 
-package org.apache.hadoop.fs.velox;
+package org.dicl.velox.fs;
 
 import com.dicl.velox.VeloxDFS;
 

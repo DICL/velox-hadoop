@@ -1,4 +1,4 @@
-package org.apache.hadoop.fs.velox;
+package org.dicl.velox.fs;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.DelegateToFileSystem;

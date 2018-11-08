@@ -13,13 +13,34 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import com.dicl.velox.VeloxDFS;
 
+// Zookeeper staff
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.ZooDefs.Ids;
+import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.KeeperException;
+
 import java.util.ArrayList;
 import java.io.IOException;
 import java.lang.InterruptedException;
 import java.lang.Math;
+import java.util.concurrent.Future;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.lang.Boolean;
+import java.util.concurrent.ExecutionException;
 
-public class VDFSRecordReader extends RecordReader<LongWritable, Text> {
-    private static final Log LOG = LogFactory.getLog(VDFSRecordReader.class);
+public class LeanRecordReader extends RecordReader<LongWritable, Text> {
+    private static final Log LOG = LogFactory.getLog(LeanRecordReader.class);
+
+    // Hadoop stuff
+    private LongWritable key = new LongWritable();
+    private Text value = new Text();
+    private LeanInputSplit split;
+    private Counter inputCounter;
 
     private VeloxDFS vdfs = null;
     private long pos = 0;
@@ -31,12 +52,26 @@ public class VDFSRecordReader extends RecordReader<LongWritable, Text> {
     private byte[] lineBuffer;
     private static final int DEFAULT_BUFFER_SIZE = 2 << 20; // 2 MiB
     private static final int DEFAULT_LINE_BUFFER_SIZE = 8 << 10; // 8 KiB
-    private LongWritable key = new LongWritable();
-    private Text value = new Text();
-    private VDFSInputSplit split;
-    private Counter inputCounter;
+    private int currentchunk = 0;
+    private ArrayList<Chunk> localChunks = new ArrayList<Chunk>();
 
-    public VDFSRecordReader() { }
+    // Zookeeper stuff
+    private ZooKeeper zk;
+    private Future<Boolean> isConnected;
+
+    /**
+     * Zookeeper watcher to manage when we are actually connected to zookeeper
+     */
+    static class ZKconnectCallable extends CompletableFuture<Boolean> implements Watcher {
+        @Override
+        public void process(WatchedEvent event)  { 
+            if (event.getState() == Watcher.Event.KeeperState.SyncConnected) {
+                complete(new Boolean(true)); 
+            }
+        }
+    }
+
+    public LeanRecordReader() { }
 
     /**
      * Called once at initialization.
@@ -48,20 +83,60 @@ public class VDFSRecordReader extends RecordReader<LongWritable, Text> {
     @Override
     public void initialize(InputSplit split_, TaskAttemptContext context) 
         throws IOException, InterruptedException {
-        split = (VDFSInputSplit) split_;
+        split = (LeanInputSplit) split_;
         size = split.size;
 
         vdfs = new VeloxDFS();
         Configuration conf = context.getConfiguration();
 
-        int bufferSize =     conf.getInt("velox.recordreader.buffersize", DEFAULT_BUFFER_SIZE);
+        int bufferSize     = conf.getInt("velox.recordreader.buffersize", DEFAULT_BUFFER_SIZE);
         int lineBufferSize = conf.getInt("velox.recordreader.linebuffersize", DEFAULT_LINE_BUFFER_SIZE);
+        String zkAddress   = conf.get("velox.recordreader.zk-addr", "192.168.0.101");
 
         buffer = new byte[bufferSize];
         lineBuffer = new byte[lineBufferSize];
 
-        inputCounter = context.getCounter("VDFS COUNTERS", VDFSInputFormat.Counter.BYTES_READ.name());
+        ZKconnectCallable watcher = new ZKconnectCallable();
+        isConnected = watcher;
+
+        zk = new ZooKeeper(zkAddress, 0, watcher);
+
+        inputCounter = context.getCounter("Lean COUNTERS", LeanInputFormat.Counter.BYTES_READ.name());
         LOG.info("Initialized RecordReader for: " + split.logical_block_name + " size: " + split.size + " NumChunks: " + split.chunks.size() + " Host " + split.host);
+    }
+
+    /**
+     *  Try to allocate a chunk to be processed
+     *  @return ID of the allocated chunk; -1 when no chunks are available anymore
+     */
+    private int getNextChunk() throws InterruptedException, ExecutionException {
+        int nChunks = split.chunks.size();
+        if (!isConnected.get())
+            LOG.error("RecordReader failed to connect to the ZK instance");
+
+        // Try to create a node Atomic operation
+        while (currentchunk < nChunks) {
+            String chunkPath = "/chunks/" + currentchunk;
+
+            try {
+                zk.create(chunkPath, (new String("processing")).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT); 
+
+            // Already exists
+            } catch (KeeperException e) {
+                currentchunk++;
+                continue;
+            }
+
+            //localChunks.add(currentchunk);
+            break;
+        }
+
+        // Reached EOF
+        if (currentchunk == nChunks) {
+            return -1;
+        }
+
+        return currentchunk;
     }
 
     /**
@@ -185,6 +260,7 @@ public class VDFSRecordReader extends RecordReader<LongWritable, Text> {
     public float getProgress() throws IOException, InterruptedException {
         return (float)pos/(float)size;
     }
+
 
     /**
      * Close the record reader.

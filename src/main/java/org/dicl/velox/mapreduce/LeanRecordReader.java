@@ -58,6 +58,13 @@ public class LeanRecordReader extends RecordReader<LongWritable, Text> {
     // Zookeeper stuff
     private ZooKeeper zk;
     private Future<Boolean> isConnected;
+    private Counter zkCounter;
+
+
+    public static enum RRCounter {
+        ZK_OVERHEAD
+    }
+    
 
     /**
      * Zookeeper watcher to manage when we are actually connected to zookeeper
@@ -84,14 +91,14 @@ public class LeanRecordReader extends RecordReader<LongWritable, Text> {
     public void initialize(InputSplit split_, TaskAttemptContext context) 
         throws IOException, InterruptedException {
         split = (LeanInputSplit) split_;
-        size = split.size;
+        size = 0;
 
         vdfs = new VeloxDFS();
         Configuration conf = context.getConfiguration();
 
         int bufferSize     = conf.getInt("velox.recordreader.buffersize", DEFAULT_BUFFER_SIZE);
         int lineBufferSize = conf.getInt("velox.recordreader.linebuffersize", DEFAULT_LINE_BUFFER_SIZE);
-        String zkAddress   = conf.get("velox.recordreader.zk-addr", "192.168.0.101");
+        String zkAddress   = conf.get("velox.recordreader.zk-addr", "192.168.0.101:2181");
 
         buffer = new byte[bufferSize];
         lineBuffer = new byte[lineBufferSize];
@@ -99,36 +106,47 @@ public class LeanRecordReader extends RecordReader<LongWritable, Text> {
         ZKconnectCallable watcher = new ZKconnectCallable();
         isConnected = watcher;
 
-        zk = new ZooKeeper(zkAddress, 0, watcher);
+        zk = new ZooKeeper(zkAddress, 180000, watcher);
 
         inputCounter = context.getCounter("Lean COUNTERS", LeanInputFormat.Counter.BYTES_READ.name());
-        LOG.info("Initialized RecordReader for: " + split.logical_block_name + " size: " + split.size + " NumChunks: " + split.chunks.size() + " Host " + split.host);
+        zkCounter = context.getCounter("Lean COUNTERS", LeanRecordReader.RRCounter.ZK_OVERHEAD.name());
+        LOG.info("Initialized RecordReader for: " + split.logical_block_name + " size: " + size + " NumChunks: " + split.chunks.size() + " Host " + split.host);
     }
 
     /**
      *  Try to allocate a chunk to be processed
      *  @return ID of the allocated chunk; -1 when no chunks are available anymore
      */
-    private int getNextChunk() throws InterruptedException, ExecutionException {
+    private int getNextChunk() {
         int nChunks = split.chunks.size();
-        if (!isConnected.get())
-            LOG.error("RecordReader failed to connect to the ZK instance");
 
-        // Try to create a node Atomic operation
-        while (currentchunk < nChunks) {
-            String chunkPath = "/chunks/" + currentchunk;
+        try {
+            LOG.info ("start");
+            if (!isConnected.get())
+                LOG.error("RecordReader failed to connect to the ZK instance");
+            LOG.info ("FI");
 
-            try {
-                zk.create(chunkPath, (new String("processing")).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT); 
+            // Try to create a node Atomic operation
+            while (currentchunk < nChunks) {
+                Chunk chunk = split.chunks.get(currentchunk);
+                String chunkPath = "/chunks/" + chunk.index;
 
-            // Already exists
-            } catch (KeeperException e) {
-                currentchunk++;
-                continue;
+                try {
+                    zk.create(chunkPath, (new String("processing")).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT); 
+
+                    // Already exists
+                } catch (KeeperException e) {
+                    currentchunk++;
+                    continue;
+                }
+
+                LOG.info("I got a new chunk: "+ currentchunk);
+                localChunks.add(chunk);
+                size += chunk.size;
+                break;
             }
-
-            //localChunks.add(currentchunk);
-            break;
+        } catch (Exception e) {
+            LOG.error("Messed up with concurrency");
         }
 
         // Reached EOF
@@ -147,8 +165,8 @@ public class LeanRecordReader extends RecordReader<LongWritable, Text> {
      */
     @Override
     public boolean nextKeyValue() throws IOException, InterruptedException {
-        if (pos >= size)
-            return false;
+       // if (pos >= size || pos != 0)
+       //     return false;
 
         // Computing key
         key.set(pos);
@@ -206,7 +224,14 @@ public class LeanRecordReader extends RecordReader<LongWritable, Text> {
      */
     public int read(long pos, byte[] buf, int off, int len) {
         int i = 0; long total_size = 0;
-        for (Chunk chunk : split.chunks) {
+
+        // Get new chunk if no bytes to read
+        if (pos >= size) {
+            getNextChunk();
+        }
+
+        // Find chunk to read
+        for (Chunk chunk : localChunks) {
             if (chunk.size + total_size > pos) {
                break;
             }
@@ -214,11 +239,11 @@ public class LeanRecordReader extends RecordReader<LongWritable, Text> {
             i++;
         }
 
-        if (i == split.chunks.size()) {
+        if (i == localChunks.size()) {
             return -1;
         }
 
-        Chunk the_chunk = split.chunks.get(i);
+        Chunk the_chunk = localChunks.get(i);
         long chunk_offset = pos - total_size;
 
         int len_to_read = (int)Math.min(len, the_chunk.size - chunk_offset);
@@ -267,6 +292,9 @@ public class LeanRecordReader extends RecordReader<LongWritable, Text> {
      */
     @Override
     public void close() throws IOException {
+        try {
+            zk.close();
+        } catch (Exception e) { }
         vdfs.close(fd);
         inputCounter.increment(pos);
     }

@@ -43,6 +43,7 @@ public class LeanInputFormat extends InputFormat<LongWritable, Text> {
 
       // Generate Logical Block distribution
       String path = job.getConfiguration().get("vdfsInputFile");
+
       long fd = vdfs.open(path);
       Metadata md = vdfs.getMetadata(fd, (byte)3);
 

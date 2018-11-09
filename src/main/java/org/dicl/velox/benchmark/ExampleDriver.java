@@ -38,6 +38,13 @@ public class ExampleDriver {
 
       pgd.addClass("AggregateWordCount", AggregateWordCount.class, 
                    "A map/reduce program that counts the words in the input files.");
+
+      pgd.addClass("leanwordcount", LeanWordCount.class, 
+                   "A map/reduce program that counts the words in the input files using lean scheduler.");
+
+      pgd.addClass("LeanAggregateWordCount", LeanAggregateWordCount.class, 
+                   "A map/reduce program that counts the words in the input files using lean scheduler.");
+
       exitCode = pgd.run(argv);
     }
     catch(Throwable e){

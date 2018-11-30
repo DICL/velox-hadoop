@@ -18,6 +18,7 @@
 
 package org.dicl.velox.benchmark;
 
+import org.dicl.velox.mapreduce.LeanSession;
 import org.dicl.velox.mapreduce.LeanInputFormat;
 
 import java.io.IOException;
@@ -77,13 +78,19 @@ public class LeanAggregateWordCount {
 
     System.out.println(args[0] + " " + args[1]);
     Configuration conf = job.getConfiguration();
-    conf.set("vdfsInputFile", args[2]);
 
+
+    job.setJobName("aggregatewordcount");
     job.setJarByClass(LeanAggregateWordCount.class);
+
+    String zkAddress   = conf.get("velox.recordreader.zk-addr", "192.168.0.101:2181");
+    LeanSession session = new LeanSession(zkAddress, 500000);
 
     job.setInputFormatClass(LeanInputFormat.class);
     int ret = job.waitForCompletion(true) ? 0 : 1;
     System.exit(ret);
+
+    session.close();
   }
 
 }

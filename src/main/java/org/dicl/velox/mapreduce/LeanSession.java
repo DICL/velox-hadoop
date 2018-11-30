@@ -45,11 +45,15 @@ public class LeanSession {
        if (zk.exists("/chunks", false) != null) {
            Transaction trans = zk.transaction();
            List<String> children = zk.getChildren("/chunks", false);
+           int numChildren = 0;
            for (String child : children) {
                trans.delete("/chunks/"+ child, -1);
+               numChildren++;
            }
            trans.delete("/chunks", -1);
            trans.commit();
+
+           LOG.info("Delete " + numChildren + " locks");
        }
     }
 

@@ -96,8 +96,6 @@ public class LeanWordCount {
     FileOutputFormat.setOutputPath(job,
       new Path(otherArgs[otherArgs.length - 1]));
 
-    job.getConfiguration().set("vdfsInputFile", otherArgs[0]);
-
     System.exit(job.waitForCompletion(true) ? 0 : 1);
     session.close();
   }

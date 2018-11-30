@@ -31,6 +31,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.aggregate.ValueAggregatorBaseDescriptor;
 import org.apache.hadoop.mapreduce.lib.aggregate.ValueAggregatorJob;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.util.GenericOptionsParser;
 
 /**
  * This is an example Aggregated Hadoop Map/Reduce application. It reads the
@@ -75,9 +76,12 @@ public class AggregateWordCount {
     Job job = ValueAggregatorJob.createValueAggregatorJob(args
         , new Class[] {WordCountPlugInClass.class});
 
-    System.out.println(args[0] + " " + args[1]);
+    job.setJobName("aggregatewordcount");
     Configuration conf = job.getConfiguration();
-    conf.set("vdfsInputFile", args[2]);
+    args = new GenericOptionsParser(conf, args).getRemainingArgs();
+
+    System.out.println(args[0] + " " + args[1]);
+    conf.set("vdfsInputFile", args[0]);
 
     job.setJarByClass(AggregateWordCount.class);
 

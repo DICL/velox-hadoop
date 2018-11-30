@@ -10,6 +10,10 @@ import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+
 import com.dicl.velox.VeloxDFS;
 import com.dicl.velox.model.Metadata;
 import com.dicl.velox.model.BlockMetadata;
@@ -42,20 +46,33 @@ public class LeanInputFormat extends InputFormat<LongWritable, Text> {
       LOG.info("LeanInputFormat Entered");
 
       // Generate Logical Block distribution
-      String path = job.getConfiguration().get("vdfsInputFile");
+      String filePath = job.getConfiguration().get("velox.inputfile");
 
-      long fd = vdfs.open(path);
+      if (job.getConfiguration().getBoolean("velox.profileToHDFS", false) == true) {
+          Path path = new Path("hdfs:///stats_" + job.getJobID());
+
+          FileSystem fileSystem = FileSystem.get(job.getConfiguration());
+
+          try {
+              fileSystem.create(path).close();
+
+          } catch (Exception e) {}
+      }
+
+      long fd = vdfs.open(filePath);
       Metadata md = vdfs.getMetadata(fd, (byte)3);
 
       // Generate the splits per each generated logical block
       List<InputSplit> splits = new ArrayList<InputSplit>();
+      int totalChunks = 0;
       for (int i = 0; i < md.numBlock; i++) {
           LeanInputSplit split = new LeanInputSplit(md.blocks[i].name, md.blocks[i].host, md.blocks[i].size);
           for (BlockMetadata chunk : md.blocks[i].chunks) {
               split.addChunk(chunk.name, chunk.size, chunk.index);
+              totalChunks++;
           }
           splits.add(split);
-          LOG.info("P: " + md.blocks[i].name + " len: "  + md.blocks[i].size + " host: "  + md.blocks[i].host);
+          LOG.info("P: " + md.blocks[i].name + " len: "  + md.blocks[i].size + " host: "  + md.blocks[i].host + " numChunks: " + totalChunks);
       }
       vdfs.close(fd);
       return splits;

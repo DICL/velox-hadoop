@@ -45,6 +45,15 @@ public class ExampleDriver {
       pgd.addClass("LeanAggregateWordCount", LeanAggregateWordCount.class, 
                    "A map/reduce program that counts the words in the input files using lean scheduler.");
 
+      pgd.addClass("leangrep", LeanGrep.class, 
+                   "A map/reduce program that counts the words in the input files.");
+
+      pgd.addClass("leansort", LeanSort.class, 
+                   "A map/reduce program that counts the words in the input files.");
+
+      pgd.addClass("leanjoin", LeanJoin.class, 
+                   "A map/reduce program that counts the words in the input files.");
+
       exitCode = pgd.run(argv);
     }
     catch(Throwable e){

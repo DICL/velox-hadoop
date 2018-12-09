@@ -81,6 +81,7 @@ public class LeanRecordReader extends RecordReader<LongWritable, Text> {
     private FileSystem fileSystem;
     private Path path;
     private boolean first = true;
+    private String zkPrefix;
 
 
     /**
@@ -131,6 +132,7 @@ public class LeanRecordReader extends RecordReader<LongWritable, Text> {
         isConnected = watcher;
 
         zk = new ZooKeeper(zkAddress, 180000, watcher);
+        zkPrefix = "/chunks/" + context.getJobID() + "/"; 
 
         if (profileToHDFS) {
             path = new Path("hdfs:///stats_" + context.getJobID());
@@ -143,6 +145,7 @@ public class LeanRecordReader extends RecordReader<LongWritable, Text> {
         inputCounter = context.getCounter("Lean COUNTERS", LeanInputFormat.Counter.BYTES_READ.name());
         overheadCounter = context.getCounter("Lean COUNTERS", "ZOOKEEPER_OVERHEAD_MILISECONDS");
         readingCounter = context.getCounter("Lean COUNTERS", "READING_OVERHEAD_MILISECONDS");
+        LOG.info("ZKPREFIX: " + zkPrefix);
         LOG.info("Initialized RecordReader for: " + split.logical_block_name + " size: " + size + " NumChunks: " + split.chunks.size() + " Host " + split.host + " TotalChunks " + numChunks + " input_threshold" + input_thre);
     }
 
@@ -162,10 +165,11 @@ public class LeanRecordReader extends RecordReader<LongWritable, Text> {
 
             // Try to create a node Atomic operation
             while (currentchunk < nChunks) {
+
                 Chunk chunk = split.chunks.get(currentchunk);
 
                 if (chunk.index >= (int)(numChunks*input_thre)) {
-                    String chunkPath = "/chunks/" + chunk.index;
+                    String chunkPath = zkPrefix + String.valueOf(chunk.index);
                     long start = 0, end = 0;
 
                     try {

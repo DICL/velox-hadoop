@@ -83,14 +83,16 @@ public class LeanAggregateWordCount {
     job.setJobName("aggregatewordcount");
     job.setJarByClass(LeanAggregateWordCount.class);
 
-    String zkAddress   = conf.get("velox.recordreader.zk-addr", "192.168.0.101:2181");
-    LeanSession session = new LeanSession(zkAddress, 500000);
 
     job.setInputFormatClass(LeanInputFormat.class);
     int ret = job.waitForCompletion(true) ? 0 : 1;
+
+    String zkAddress   = conf.get("velox.recordreader.zk-addr", "192.168.0.101:2181");
+    LeanSession session = new LeanSession(zkAddress, job.getStatus().getJobID().toString(), 500000);
+    session.deleteChunks();
+    session.close();
     System.exit(ret);
 
-    session.close();
   }
 
 }

@@ -48,6 +48,11 @@ public class LeanInputFormat extends InputFormat<LongWritable, Text> {
       // Generate Logical Block distribution
       String filePath = job.getConfiguration().get("velox.inputfile");
 
+      String zkAddress   = job.getConfiguration().get("velox.recordreader.zk-addr", "192.168.0.101:2181");
+      LeanSession session = new LeanSession(zkAddress, job.getJobID().toString(), 500000);
+      session.setupZK();
+      session.close();
+
       if (job.getConfiguration().getBoolean("velox.profileToHDFS", false) == true) {
           Path path = new Path("hdfs:///stats_" + job.getJobID());
 

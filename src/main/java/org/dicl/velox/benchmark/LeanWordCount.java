@@ -77,11 +77,7 @@ public class LeanWordCount {
       System.exit(2);
     }
 
-    Job job = Job.getInstance(conf, "word count");
-
-    String zkAddress   = conf.get("velox.recordreader.zk-addr", "192.168.0.101:2181");
-
-    LeanSession session = new LeanSession(zkAddress, 500000);
+    Job job = Job.getInstance(conf, "wordcount");
 
     job.setJarByClass(LeanWordCount.class);
     job.setMapperClass(TokenizerMapper.class);
@@ -96,7 +92,12 @@ public class LeanWordCount {
     FileOutputFormat.setOutputPath(job,
       new Path(otherArgs[otherArgs.length - 1]));
 
-    System.exit(job.waitForCompletion(true) ? 0 : 1);
+    boolean ret = job.waitForCompletion(true);
+
+    String zkAddress   = conf.get("velox.recordreader.zk-addr", "192.168.0.101:2181");
+    LeanSession session = new LeanSession(zkAddress, job.getStatus().getJobID().toString(), 500000);
+    session.deleteChunks();
     session.close();
+    System.exit((ret) ? 0: 1);
   }
 }

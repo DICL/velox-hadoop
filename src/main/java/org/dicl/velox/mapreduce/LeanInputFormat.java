@@ -10,10 +10,6 @@ import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-
 import com.dicl.velox.VeloxDFS;
 import com.dicl.velox.model.Metadata;
 import com.dicl.velox.model.BlockMetadata;
@@ -25,15 +21,9 @@ import java.lang.InterruptedException;
 
 public class LeanInputFormat extends InputFormat<LongWritable, Text> {
   private static final Log LOG = LogFactory.getLog(LeanInputFormat.class);
-  private VeloxDFS vdfs = null;
 
   public static enum Counter {
       BYTES_READ
-  }
-
-  public LeanInputFormat() {
-      super();
-      vdfs = new VeloxDFS();
   }
 
   /** 
@@ -44,26 +34,16 @@ public class LeanInputFormat extends InputFormat<LongWritable, Text> {
   @Override
   public List<InputSplit> getSplits(JobContext job) throws IOException {
       LOG.info("LeanInputFormat Entered");
+      VeloxDFS vdfs = new VeloxDFS();
 
-      // Generate Logical Block distribution
-      String filePath = job.getConfiguration().get("velox.inputfile");
-
+      // Setup Zookeeper ZNODES
       String zkAddress   = job.getConfiguration().get("velox.recordreader.zk-addr", "192.168.0.101:2181");
       LeanSession session = new LeanSession(zkAddress, job.getJobID().toString(), 500000);
       session.setupZK();
       session.close();
 
-      if (job.getConfiguration().getBoolean("velox.profileToHDFS", false) == true) {
-          Path path = new Path("hdfs:///stats_" + job.getJobID());
-
-          FileSystem fileSystem = FileSystem.get(job.getConfiguration());
-
-          try {
-              fileSystem.create(path).close();
-
-          } catch (Exception e) {}
-      }
-
+      // Generate Logical Block distribution
+      String filePath = job.getConfiguration().get("velox.inputfile");
       long fd = vdfs.open(filePath);
       Metadata md = vdfs.getMetadata(fd, (byte)3);
 

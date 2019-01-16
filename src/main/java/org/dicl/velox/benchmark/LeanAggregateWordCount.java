@@ -18,20 +18,20 @@
 
 package org.dicl.velox.benchmark;
 
-import org.dicl.velox.mapreduce.LeanSession;
-import org.dicl.velox.mapreduce.LeanInputFormat;
+
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.StringTokenizer;
 import java.util.Map.Entry;
-
+import java.util.StringTokenizer;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.aggregate.ValueAggregatorBaseDescriptor;
 import org.apache.hadoop.mapreduce.lib.aggregate.ValueAggregatorJob;
-import org.apache.hadoop.conf.Configuration;
+import org.dicl.velox.mapreduce.LeanInputFormat;
+import org.dicl.velox.mapreduce.LeanSession;
 
 /**
  * This is an example Aggregated Hadoop Map/Reduce application. It reads the

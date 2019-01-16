@@ -148,7 +148,7 @@ public class VDFSRecordReader extends RecordReader<LongWritable, Text> {
 
         int len_to_read = (int)Math.min(len, the_chunk.size - chunk_offset);
 
-        long readBytes = vdfs.readChunk(the_chunk.file_name, split.host, buf, off, chunk_offset, len_to_read);
+        long readBytes = vdfs.readChunk(the_chunk.fileName, split.host, buf, off, chunk_offset, len_to_read);
 
         return (int)readBytes;
     }

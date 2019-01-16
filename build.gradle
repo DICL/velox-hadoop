@@ -3,6 +3,7 @@ plugins {
   id 'java'
   id 'application'
   id 'maven-publish'
+  id 'checkstyle'
 }
 
 repositories {
@@ -17,9 +18,10 @@ dependencies {
     implementation 'org.apache.zookeeper:zookeeper:3.4.0'
     implementation 'org.apache.hadoop:hadoop-client:2.7.3'
     implementation 'com.dicl.velox:veloxdfs:1.0'
+
 }
 
-mainClassName = 'org.dicl.velox.benchmark.ExampleDriver'
+mainClassName = 'org.dicl.velox.benchmark.VDFSLauncher'
 
 // The remaining part is to be compatible with Maven
 jar {
@@ -27,6 +29,12 @@ jar {
     attributes(
       'Main-Class': 'org.dicl.velox.benchmark.ExampleDriver'
     )
+  }
+
+  from { 
+    configurations.compile.collect { 
+      it.isDirectory() ? it : zipTree(it) 
+    } 
   }
 }
 
@@ -41,3 +49,5 @@ publishing {
         }
     }
 }
+
+run.dependsOn 'jar'

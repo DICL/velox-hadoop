@@ -18,14 +18,10 @@
 
 package org.dicl.velox.benchmark;
 
-import org.dicl.velox.mapreduce.LeanSession;
-import org.dicl.velox.mapreduce.LeanInputFormat;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
@@ -47,6 +43,8 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+import org.dicl.velox.mapreduce.LeanInputFormat;
+import org.dicl.velox.mapreduce.LeanSession;
 
 /**
  * Given a set of sorted datasets keyed with the same class and yielding

@@ -1,346 +1,362 @@
 package org.dicl.velox.mapreduce;
 
+import com.dicl.velox.VeloxDFS;
+
+import java.io.IOException;
+import java.lang.Boolean;
+import java.lang.InterruptedException;
+import java.lang.Math;
+import java.lang.System;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.mapreduce.FileSystemCounter;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.Counter;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.io.Writable;
-import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
-import com.dicl.velox.VeloxDFS;
-
-// Zookeeper staff
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.ZooKeeper;
-import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.KeeperException;
-
-import java.util.ArrayList;
-import java.io.IOException;
-import java.lang.InterruptedException;
-import java.lang.Math;
-import java.util.concurrent.Future;
-import java.util.concurrent.CompletableFuture;
-import java.lang.Boolean;
-import java.lang.System;
-import java.util.concurrent.ExecutionException;
-import java.util.Collections;
-
 
 public class LeanRecordReader extends RecordReader<LongWritable, Text> {
-    private static final Log LOG = LogFactory.getLog(LeanRecordReader.class);
+  private static final Log LOG = LogFactory.getLog(LeanRecordReader.class);
 
-    // Hadoop stuff
-    private LongWritable key = new LongWritable();
-    private Text value = new Text();
-    private LeanInputSplit split;
-    private Counter inputCounter;
-    private Counter overheadCounter;
-    private Counter readingCounter;
-    private Counter startOverheadCounter;
+  // Constants
+  private static final int DEFAULT_BUFFER_SIZE = 2 << 20; // 2 MiB
+  private static final int DEFAULT_LINE_BUFFER_SIZE = 8 << 20; // 8 MiB
+  private static final int DEFAULT_ZOOKEEPER_TIMEOUT_MS = 180000; // 180s
 
-    private VeloxDFS vdfs = null;
-    private long pos = 0;
-    private long size = 0;
-    private long processedChunks= 0;
-    private int fd = 0;
-    private int bufferOffset = 0;
-    private int remaining_bytes = 0;
-    private byte[] buffer;
-    private byte[] lineBuffer;
-    private static final int DEFAULT_BUFFER_SIZE = 2 << 20; // 2 MiB
-    private static final int DEFAULT_LINE_BUFFER_SIZE = 8 << 10; // 8 KiB
-    private int currentchunk = 0;
-    private ArrayList<Chunk> localChunks = new ArrayList<Chunk>();
-    private double percentageOfPreassigned;
-    private int totalFileChunks;
-    private int currentSplitNumChunks;
+  // Hadoop stuff
+  private LongWritable key = new LongWritable();
+  private Text value = new Text();
+  private LeanInputSplit split;
+  private String zkPrefix;
+  private Counter inputCounter;
+  private Counter overheadCounter;
+  private Counter readingCounter;
+  private Counter startOverheadCounter;
+  private Counter nextOverheadCounter;
 
-    // Zookeeper stuff
-    private ZooKeeper zk;
-    private Future<Boolean> isConnected;
+  private VeloxDFS vdfs = null;
+  private long pos = 0;
+  private long size = 0;
+  private long processedChunks = 0;
+  private int bufferOffset = 0;
+  private int remainingBytes = 0;
+  private byte[] buffer;
+  private int currentchunk = 0;
+  private ArrayList<Chunk> localChunks = new ArrayList<Chunk>();
+  private int numStaticChunks;
+  private int currentSplitNumChunks;
 
-    // Profiling stuff
-    private long zookeeper_time = 0;
-    private long reading_time = 0;
-    private long startConnect = 0, endConnect = 0;
-    private boolean first = true;
-    private String zkPrefix;
+  // Zookeeper stuff
+  private ZooKeeper zk;
+  private Future<Boolean> isConnected;
 
+  // Profiling stuff
+  private long zookeeperTime = 0;
+  private long readingTime = 0;
+  private long nextTime = 0;
+  private long startConnect = 0;
+  private long endConnect = 0;
+  private boolean first = true;
+  private byte[] lineBuffer;
 
-    /**
-     * Zookeeper watcher to manage when we are actually connected to zookeeper
-     */
-    static class ZKconnectCallable extends CompletableFuture<Boolean> implements Watcher {
-        @Override
-        public void process(WatchedEvent event)  { 
-            if (event.getState() == Watcher.Event.KeeperState.SyncConnected) {
-                complete(new Boolean(true)); 
-            }
-        }
-    }
-
-    public LeanRecordReader() { }
-
-    /**
-     * Called once at initialization.
-     * @param split the split that defines the range of records to read
-     * @param context the information about the task
-     * @throws IOException
-     * @throws InterruptedException
-     */
+  /**
+   * Zookeeper watcher to manage when we are actually connected to zookeeper.
+   */
+  static class ZKconnectCallable extends CompletableFuture<Boolean> implements Watcher {
     @Override
-    public void initialize(InputSplit split_, TaskAttemptContext context) 
-        throws IOException, InterruptedException {
-        startConnect = System.currentTimeMillis();
-        split = (LeanInputSplit) split_;
-        size = 0;
+    public void process(WatchedEvent event)  { 
+      if (event.getState() == Watcher.Event.KeeperState.SyncConnected) {
+        complete(new Boolean(true)); 
+      }
+    }
+  }
 
-        currentSplitNumChunks = split.chunks.size();
+  public LeanRecordReader() { }
 
-        vdfs = new VeloxDFS();
-        Configuration conf = context.getConfiguration();
+  /**
+   * Called once at initialization.
+   * @param split the split that defines the range of records to read
+   * @param context the information about the task
+   * @throws IOException idk
+   * @throws InterruptedException idk
+   */
+  @Override
+  public void initialize(InputSplit split, TaskAttemptContext context) 
+      throws IOException, InterruptedException {
+    startConnect = System.currentTimeMillis();
+    this.split = (LeanInputSplit) split;
+    size = 0;
 
-        int bufferSize           = conf.getInt("velox.recordreader.buffersize", DEFAULT_BUFFER_SIZE);
-        int lineBufferSize       = conf.getInt("velox.recordreader.linebuffersize", DEFAULT_LINE_BUFFER_SIZE);
-        String zkAddress         = conf.get("velox.recordreader.zk-addr", "192.168.0.101:2181");
-        percentageOfPreassigned  = conf.getDouble("velox.input_threshold", 0.80);
-        totalFileChunks          = conf.getInt("velox.numChunks", 0);
+    currentSplitNumChunks = this.split.chunks.size();
 
-        buffer = new byte[bufferSize];
-        lineBuffer = new byte[lineBufferSize];
+    vdfs = new VeloxDFS();
+    Configuration conf = context.getConfiguration();
 
-        ZKconnectCallable watcher = new ZKconnectCallable();
-        isConnected = watcher;
+    int bufferSize     = conf.getInt("velox.recordreader.buffersize", DEFAULT_BUFFER_SIZE);
+    int lineBufferSize = conf.getInt("velox.recordreader.linebuffersize", DEFAULT_LINE_BUFFER_SIZE);
+    numStaticChunks    = conf.getInt("velox.numStaticChunks", 0);
 
-        zk = new ZooKeeper(zkAddress, 180000, watcher);
-        zkPrefix = "/chunks/" + context.getJobID() + "/"; 
+    buffer = new byte[bufferSize];
+    lineBuffer = new byte[DEFAULT_LINE_BUFFER_SIZE];
 
-        // Shuffle chunks to avoid access contention
-        //Collections.shuffle(split.chunks);
+    isConnected = new ZKconnectCallable();
+    String zkAddress   = conf.get("velox.recordreader.zk-addr", "192.168.0.101:2181");
+    zk = new ZooKeeper(zkAddress, DEFAULT_ZOOKEEPER_TIMEOUT_MS, (Watcher)isConnected);
 
-        inputCounter    = context.getCounter("Lean COUNTERS", LeanInputFormat.Counter.BYTES_READ.name());
-        overheadCounter = context.getCounter("Lean COUNTERS", "ZOOKEEPER_OVERHEAD_MILISECONDS");
-        readingCounter  = context.getCounter("Lean COUNTERS", "READING_OVERHEAD_MILISECONDS");
-        startOverheadCounter = context.getCounter("Lean COUNTERS", "START_OVERHEAD_MILISECONDS");
+    zkPrefix = "/chunks/" + context.getJobID() + "/"; 
+    // Shuffle chunks to avoid access contention
+    //Collections.shuffle(split.chunks);
 
-        LOG.info("Initialized RecordReader for: " + split.logical_block_name + 
-                " size: " + size + " NumChunks: " + split.chunks.size() + 
-                " Host " + split.host + " TotalChunks " + totalFileChunks + 
-                " percentageOfPreassignedshold" + percentageOfPreassigned);
+    inputCounter = context.getCounter("Lean COUNTERS", LeanInputFormat.Counter.BYTES_READ.name());
+    overheadCounter = context.getCounter("Lean COUNTERS", "ZOOKEEPER_OVERHEAD_MILISECONDS");
+    readingCounter = context.getCounter("Lean COUNTERS", "READING_OVERHEAD_MILISECONDS");
+    startOverheadCounter = context.getCounter("Lean COUNTERS", "START_OVERHEAD_MILISECONDS");
+    nextOverheadCounter = context.getCounter("Lean COUNTERS", "NEXT_OVERHEAD_MILISECONDS");
+
+    LOG.info("Initialized RecordReader for: " + this.split.logicalBlockName
+        + " size: " + size + " NumChunks: " + this.split.chunks.size()
+        + " Host " + this.split.host + " staticchunks " + numStaticChunks);
+  }
+
+  /**
+   *  Try to allocate a chunk to be processed.
+   *  @return ID of the allocated chunk; -1 when no chunks are available anymore
+   */
+  private int getNextChunk() {
+
+    try {
+      if (!isConnected.get()) {
+        LOG.error("RecordReader failed to connect to the ZK instance");
+      }
+    } catch (Exception e) {
+      LOG.error("Messed up with concurrency");
     }
 
-    /**
-     *  Try to allocate a chunk to be processed
-     *  @return ID of the allocated chunk; -1 when no chunks are available anymore
-     */
-    private int getNextChunk() {
-        if (first) {
-            endConnect = System.currentTimeMillis();
-            first = false;
-        }
+    if (first) {
+      endConnect = System.currentTimeMillis();
+      first = false;
+    }
+
+    // Try to create a node Atomic operation
+    while (currentchunk < currentSplitNumChunks) {
+
+      Chunk chunk = split.chunks.get(currentchunk);
+
+      // Dynamic chunk selection
+      if (chunk.index >= numStaticChunks -1) {
+
+        String chunkPath = zkPrefix + String.valueOf(chunk.index);
+        long start = 0;
+        long end = 0;
 
         try {
-            if (!isConnected.get())
-                LOG.error("RecordReader failed to connect to the ZK instance");
+          start = System.currentTimeMillis();
+          zk.create(chunkPath, (new String("processing")).getBytes(), Ids.OPEN_ACL_UNSAFE, 
+              CreateMode.PERSISTENT); 
 
-            // Try to create a node Atomic operation
-            while (currentchunk < currentSplitNumChunks) {
+          // Already exists
+        } catch (KeeperException e) {
+          currentchunk++;
+          continue;
 
-                Chunk chunk = split.chunks.get(currentchunk);
-
-                // Dynamic chunk selection
-                if (chunk.index >= (int)(totalFileChunks*percentageOfPreassigned)) {
-                    //LOG.info("Dynamic " + chunk.index + " t: " + (int)(totalFileChunks*percentageOfPreassigned));
-                    
-                    String chunkPath = zkPrefix + String.valueOf(chunk.index);
-                    long start = 0, end = 0;
-
-                    try {
-                        start = System.currentTimeMillis();
-                        zk.create(chunkPath, (new String("processing")).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT); 
-
-                    // Already exists
-                    } catch (KeeperException e) {
-                        currentchunk++;
-                        continue;
-
-                    } finally {
-                        end = System.currentTimeMillis();
-                        zookeeper_time += (end - start);
-                    }
-                }
-
-                // If we found a availible chunk
-                LOG.info("I got a new chunk: "+ currentchunk + " realindex: " + chunk.index);
-                localChunks.add(chunk);
-                processedChunks++;
-                currentchunk++;
-                size += chunk.size;
-                break;
-            }
         } catch (Exception e) {
-            LOG.error("Messed up with concurrency");
-        }
+          LOG.error("Fails to connect to zookeeper");
 
-        // Reached EOF
-        if (currentchunk == currentSplitNumChunks) {
-            return -1;
+        } finally {
+          end = System.currentTimeMillis();
+          zookeeperTime += (end - start);
         }
+      }
 
-        return currentchunk;
+      // If we found a availible chunk
+      LOG.info("I got a new chunk: " + currentchunk + " realindex: " + chunk.index);
+      localChunks.add(chunk);
+      processedChunks++;
+      currentchunk++;
+      size += chunk.size;
+      break;
     }
 
-    /**
-     * Read the next key, value pair.
-     * @return true if a key/value pair was read
-     * @throws IOException
-     * @throws InterruptedException
-     */
-    @Override
-    public boolean nextKeyValue() throws IOException, InterruptedException {
-        // Computing key
-        key.set(pos);
+    // Reached EOF
+    if (currentchunk == currentSplitNumChunks) {
+      return -1;
+    }
 
-        // Computing value
-        String line = "";
-        int lpos = 0;
-        while (lpos < DEFAULT_LINE_BUFFER_SIZE) {
-            byte c = read();
-            if (c == '\n') {
-                line = new String(lineBuffer, 0, lpos);
-                break;
-            } else if (c == -1) {
-                return false;
-            }
+    return currentchunk;
+  }
 
-            lineBuffer[lpos++] = c;
+  /**
+   * Read the next key, value pair.
+   * @return true if a key/value pair was read
+   * @throws IOException idk
+   * @throws InterruptedException idk
+   */
+  @Override
+  public boolean nextKeyValue() throws IOException, InterruptedException {
+    boolean isEOF = false;
+    // Computing key
+    final long startTime = System.currentTimeMillis();
+    key.set(pos);
+
+    // Computing value
+    String line = "";
+    int lpos = 0;
+
+    lineBuffer[0] = 0;
+    while (lpos < DEFAULT_LINE_BUFFER_SIZE) {
+      byte c = read();
+      if (c == '\n' || c == -1) {
+        lineBuffer[lpos + 1] = 0;
+        line = new String(lineBuffer, 0, lpos);
+        if (c == -1) {
+          isEOF = true;
         }
-        value.set(line);
-        return true;
+        break;
+      }
+
+      lineBuffer[lpos++] = c;
     }
 
-    /**
-     * Read one character at the time
-     * @return the read character or -1 when EOF or ERROR
-     */
-    private byte read() {
-        bufferOffset %= buffer.length;
-        if (bufferOffset == 0 || remaining_bytes == 0) {
-            bufferOffset = 0;
-            remaining_bytes = read(pos, buffer, bufferOffset, buffer.length);
-        }
+    value.set(line);
+    final long endTime = System.currentTimeMillis();
+    nextTime += (endTime - startTime);
+    return lpos > 0 || !isEOF;
+  }
 
-        if (remaining_bytes <= 0) {
-            return -1;
-        }
-
-        byte ret = buffer[bufferOffset];
-
-        // Increment/decrement counters
-        pos++;
-        remaining_bytes--;
-        bufferOffset++;
-
-        return ret;
+  /**
+   * Read one character at the time.
+   * @return the read character or -1 when EOF or ERROR
+   */
+  private byte read() {
+    bufferOffset %= buffer.length;
+    if (bufferOffset == 0 || remainingBytes == 0) {
+      bufferOffset = 0;
+      remainingBytes = read(pos, buffer, bufferOffset, buffer.length);
     }
 
-    /**
-     * Read the chunk at the buffer
-     * @param pos the position in the logical block to read.
-     * @param buf the buffer where to write the read bytes.
-     * @param off the offset in the buffer to start writing the read files.
-     * @param len the number of files to read in the logical block.
-     * @return number of read bytes
-     */
-    public int read(long pos, byte[] buf, int off, int len) {
-        int i = 0; long total_size = 0;
-
-        // Get new chunk if no bytes to read
-        if (pos >= size) {
-            getNextChunk();
-        }
-
-        // Find chunk to read
-        long start_time = System.currentTimeMillis();
-        for (Chunk chunk : localChunks) {
-            if (chunk.size + total_size > pos) {
-               break;
-            }
-            total_size += chunk.size;
-            i++;
-        }
-
-        if (i == localChunks.size()) {
-            return -1;
-        }
-
-        Chunk the_chunk = localChunks.get(i);
-        long chunk_offset = pos - total_size;
-
-        int len_to_read = (int)Math.min(len, the_chunk.size - chunk_offset);
-
-        long readBytes = vdfs.readChunk(the_chunk.file_name, split.host, buf, off, chunk_offset, len_to_read);
-        long end_time = System.currentTimeMillis();
-        reading_time += (end_time - start_time);
-
-        return (int)readBytes;
+    if (remainingBytes <= 0) {
+      return -1;
     }
 
-    /**
-     * Get the current key
-     * @return the current key or null if there is no current key
-     * @throws IOException
-     * @throws InterruptedException
-     */
-    @Override
-    public LongWritable getCurrentKey() throws IOException, InterruptedException {
-        return key;
+    final byte ret = buffer[bufferOffset];
+
+    // Increment/decrement counters
+    pos++;
+    remainingBytes--;
+    bufferOffset++;
+
+    return ret;
+  }
+
+  /**
+   * Read the chunk at the buffer.
+   * @param pos the position in the logical block to read.
+   * @param buf the buffer where to write the read bytes.
+   * @param off the offset in the buffer to start writing the read files.
+   * @param len the number of files to read in the logical block.
+   * @return number of read bytes
+   */
+  public int read(long pos, byte[] buf, int off, int len) {
+    int i = 0; 
+    long totalSize = 0;
+
+    // Get new chunk if no bytes to read
+    if (pos >= size) {
+      getNextChunk();
     }
 
-    /**
-     * Get the current value.
-     * @return the object that was read
-     * @throws IOException
-     * @throws InterruptedException
-     */
-    @Override
-    public Text getCurrentValue() throws IOException, InterruptedException {
-        return value;
+    // Find chunk to read
+    final long startTime = System.currentTimeMillis();
+
+    for (Chunk chunk : localChunks) {
+      if (chunk.size + totalSize > pos) {
+        break;
+      }
+      totalSize += chunk.size;
+      i++;
     }
 
-    /**
-     * The current progress of the record reader through its data.
-     * @return a number between 0.0 and 1.0 that is the fraction of the data read
-     * @throws IOException
-     * @throws InterruptedException
-     */
-    @Override
-    public float getProgress() throws IOException, InterruptedException {
-        return (float)currentchunk/(float)currentSplitNumChunks;
+    if (i == localChunks.size()) {
+      return -1;
     }
 
-    /**
-     * Close the record reader.
-     */
-    @Override
-    public void close() throws IOException {
-        try {
-            zk.close();
-        } catch (Exception e) { }
+    Chunk theChunk = localChunks.get(i);
+    long chunkOffset = pos - totalSize;
 
-        vdfs.close(fd);
-        inputCounter.increment(pos);
+    final int lenToRead = (int)Math.min(len, theChunk.size - chunkOffset);
 
-        LOG.info(split.logical_block_name + " " + String.valueOf(processedChunks));
-        readingCounter.increment(reading_time);
-        overheadCounter.increment(zookeeper_time);
-        startOverheadCounter.increment(endConnect - startConnect);
+    final long readBytes = vdfs.readChunk(theChunk.fileName, split.host, buf, off, 
+        chunkOffset, lenToRead);
+
+    final long endTime = System.currentTimeMillis();
+    readingTime += (endTime - startTime);
+
+    return (int)readBytes;
+  }
+
+  /**
+   * Get the current key.
+   * @return the current key or null if there is no current key
+   * @throws IOException idk
+   * @throws InterruptedException idk
+   */
+  @Override
+  public LongWritable getCurrentKey() throws IOException, InterruptedException {
+    return key;
+  }
+
+  /**
+   * Get the current value.
+   * @return the object that was read
+   * @throws IOException idk
+   * @throws InterruptedException idk
+   */
+  @Override
+  public Text getCurrentValue() throws IOException, InterruptedException {
+    return value;
+  }
+
+  /**
+   * The current progress of the record reader through its data.
+   * @return a number between 0.0 and 1.0 that is the fraction of the data read
+   * @throws IOException idk
+   * @throws InterruptedException idk
+   */
+  @Override
+  public float getProgress() throws IOException, InterruptedException {
+    return (float)currentchunk / (float)currentSplitNumChunks;
+  }
+
+  /**
+   * Close the record reader.
+   */
+  @Override
+  public void close() throws IOException {
+    try {
+      zk.close();
+    } catch (Exception e) { 
+      LOG.error("Fails to close the connection to ZooKeeper");
     }
+
+    inputCounter.increment(pos);
+
+    LOG.info(split.logicalBlockName + " " + String.valueOf(processedChunks));
+    readingCounter.increment(readingTime);
+    overheadCounter.increment(zookeeperTime);
+    startOverheadCounter.increment(endConnect - startConnect);
+    nextOverheadCounter.increment(nextTime);
+  }
 }

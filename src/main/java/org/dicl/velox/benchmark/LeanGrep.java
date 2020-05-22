@@ -30,7 +30,6 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.map.InverseMapper;
 import org.apache.hadoop.mapreduce.lib.map.RegexMapper;
@@ -40,84 +39,88 @@ import org.apache.hadoop.mapreduce.lib.reduce.LongSumReducer;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 /* Extracts matching regexs from input files and counts them. */
 public class LeanGrep extends Configured implements Tool {
-  private LeanGrep() {}                               // singleton
+	private static final Log LOG = LogFactory.getLog(LeanGrep.class);
+	private LeanGrep() {}                               // singleton
 
-  public int run(String[] args) throws Exception {
-    if (args.length < 3) {
-      System.out.println("LeanGrep <inDir> <outDir> <regex> [<group>]");
-      ToolRunner.printGenericCommandUsage(System.out);
-      return 2;
-    }
+	public int run(String[] args) throws Exception {
+		for(int i=0; i<args.length; i++)
+			LOG.info("args["+String.valueOf(i)+"] = " + args[i]);
 
-    Path tempDir =
-      new Path("grep-temp-"+
-          Integer.toString(new Random().nextInt(Integer.MAX_VALUE)));
+		if (args.length < 3) {
+			System.out.println("LeanGrep <inDir> <outDir> <regex> [<group>]");
+			ToolRunner.printGenericCommandUsage(System.out);
+			return 2;
+		}
 
-    Configuration conf = getConf();
-    conf.set(RegexMapper.PATTERN, args[2]);
+		Path tempDir =
+			new Path("grep-temp-"+
+					Integer.toString(new Random().nextInt(Integer.MAX_VALUE)));
 
-   // LeanSession session = new LeanSession(zkAddress, 500000);
+		Configuration conf = getConf();
+		conf.set(RegexMapper.PATTERN, args[2]);
 
-    if (args.length == 4)
-      conf.set(RegexMapper.GROUP, args[3]);
+		// LeanSession session = new LeanSession(zkAddress, 500000);
 
-    Job grepJob = Job.getInstance(conf);
+		if (args.length == 4)
+			conf.set(RegexMapper.GROUP, args[3]);
 
-    
-    try {
-      
-      grepJob.setJobName("grep-search");
-      grepJob.setJarByClass(LeanGrep.class);
+		Job grepJob = Job.getInstance(conf);
 
-      grepJob.setInputFormatClass(LeanInputFormat.class);
-      FileInputFormat.setInputPaths(grepJob, args[0]);
 
-      grepJob.getConfiguration().set("vdfsInputFile", args[0]);
+		try {
+			grepJob.setJobName("grep-search");
+			grepJob.setJarByClass(LeanGrep.class);
 
-      grepJob.setMapperClass(RegexMapper.class);
+			grepJob.setInputFormatClass(LeanInputFormat.class);
+			FileInputFormat.setInputPaths(grepJob, args[0]);
 
-      grepJob.setCombinerClass(LongSumReducer.class);
-      grepJob.setReducerClass(LongSumReducer.class);
+			grepJob.getConfiguration().set("vdfsInputFile", args[0]);
+			grepJob.setMapperClass(RegexMapper.class);
 
-      FileOutputFormat.setOutputPath(grepJob, tempDir);
-      grepJob.setOutputFormatClass(SequenceFileOutputFormat.class);
-      grepJob.setOutputKeyClass(Text.class);
-      grepJob.setOutputValueClass(LongWritable.class);
+			grepJob.setCombinerClass(LongSumReducer.class);
+			grepJob.setReducerClass(LongSumReducer.class);
 
-      grepJob.waitForCompletion(true);
+			FileOutputFormat.setOutputPath(grepJob, tempDir);
+			grepJob.setOutputFormatClass(SequenceFileOutputFormat.class);
+			grepJob.setOutputKeyClass(Text.class);
+			grepJob.setOutputValueClass(LongWritable.class);
 
-      Job sortJob = Job.getInstance(conf);
-      sortJob.setJobName("grep-sort");
-      sortJob.setJarByClass(LeanGrep.class);
+			grepJob.waitForCompletion(true);
 
-      FileInputFormat.setInputPaths(sortJob, tempDir);
-      sortJob.setInputFormatClass(SequenceFileInputFormat.class);
+			/*String zkAddress   = conf.get("velox.recordreader.zk-addr", "172.20.1.80:2381");
+			LeanSession session = new LeanSession(zkAddress, grepJob.getStatus().getJobID().toString(), 500000);
+			session.deleteChunks();
+			session.close();
 
-      sortJob.setMapperClass(InverseMapper.class);
+			Job sortJob = Job.getInstance(conf);
+			sortJob.setJobName("grep-sort");
+			sortJob.setJarByClass(LeanGrep.class);
 
-      sortJob.setNumReduceTasks(1);                 // write a single file
-      FileOutputFormat.setOutputPath(sortJob, new Path(args[1]));
-      sortJob.setSortComparatorClass(          // sort by decreasing freq
-        LongWritable.DecreasingComparator.class);
+			FileInputFormat.setInputPaths(sortJob, tempDir);
+			sortJob.setInputFormatClass(SequenceFileInputFormat.class);
 
-      sortJob.waitForCompletion(true);
+			sortJob.setMapperClass(InverseMapper.class);
 
-      String zkAddress   = conf.get("velox.recordreader.zk-addr", "192.168.0.101:2181");
-      LeanSession session = new LeanSession(zkAddress, grepJob.getStatus().getJobID().toString(), 500000);
-      session.deleteChunks();
-      session.close();
-    }
-    finally {
-        FileSystem.get(conf).delete(tempDir, true);
-    }
-    return 0;
-  }
+			sortJob.setNumReduceTasks(1);                 // write a single file
+			FileOutputFormat.setOutputPath(sortJob, new Path(args[1]));
+			sortJob.setSortComparatorClass(          // sort by decreasing freq
+			LongWritable.DecreasingComparator.class);
 
-  public static void main(String[] args) throws Exception {
-    int res = ToolRunner.run(new Configuration(), new LeanGrep(), args);
-    System.exit(res);
-  }
+			sortJob.waitForCompletion(true);*/
+		}
+		finally {
+			FileSystem.get(conf).delete(tempDir, true);
+		}
+		return 0;
+	}
+
+	public static void main(String[] args) throws Exception {
+		int res = ToolRunner.run(new Configuration(), new LeanGrep(), args);
+		System.exit(res);
+	}
 
 }

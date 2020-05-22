@@ -22,6 +22,7 @@ import java.lang.InterruptedException;
 public class VDFSInputFormat extends InputFormat<LongWritable, Text> {
   private static final Log LOG = LogFactory.getLog(VDFSInputFormat.class);
   private VeloxDFS vdfs = null;
+  private int task_id;
 
   public static enum Counter {
       BYTES_READ
@@ -29,7 +30,7 @@ public class VDFSInputFormat extends InputFormat<LongWritable, Text> {
 
   public VDFSInputFormat() {
       super();
-      vdfs = new VeloxDFS();
+      vdfs = new VeloxDFS(null,0,true);
   }
 
   /** 
@@ -43,18 +44,21 @@ public class VDFSInputFormat extends InputFormat<LongWritable, Text> {
 
       // Generate Logical Block distribution
       String path = job.getConfiguration().get("vdfsInputFile");
+	  LOG.info("Input File : " + path);
       long fd = vdfs.open(path);
       Metadata md = vdfs.getMetadata(fd, (byte)3);
+		LOG.info("md.numblock = " + String.valueOf(md.numBlock));
 
       // Generate the splits per each generated logical block
       List<InputSplit> splits = new ArrayList<InputSplit>();
       for (int i = 0; i < md.numBlock; i++) {
-          VDFSInputSplit split = new VDFSInputSplit(md.blocks[i].name, md.blocks[i].host, md.blocks[i].size);
-          for (BlockMetadata chunk : md.blocks[i].chunks) {
-              split.addChunk(chunk.name, chunk.size, chunk.index);
-          }
+
+          VDFSInputSplit split = new VDFSInputSplit(md.blocks[i].name, job.getJobID().toString(), task_id);
+         /* for (BlockMetadata chunk : md.blocks[i].chunks) {
+              split.addChunk(chunk.HBname, chunk.size, chunk.index, chunk.offset, chunk.host);
+          }*/
           splits.add(split);
-          LOG.info("P: " + md.blocks[i].name + " len: "  + md.blocks[i].size + " host: "  + md.blocks[i].host);
+        //  LOG.info("P: " + md.blocks[i].name + " len: "  + md.blocks[i].size + " host: "  + md.blocks[i].host + "numChunks: ");
       }
       vdfs.close(fd);
       return splits;

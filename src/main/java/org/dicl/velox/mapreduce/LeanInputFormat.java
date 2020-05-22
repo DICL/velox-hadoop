@@ -17,71 +17,66 @@ import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import java.net.*;
 
 public class LeanInputFormat extends InputFormat<LongWritable, Text> {
-  private static final Log LOG = LogFactory.getLog(LeanInputFormat.class);
+	private static final Log LOG = LogFactory.getLog(LeanInputFormat.class);
+//	private static final long MinSplitSize = 134217728l; // 128MB
 
-  public static enum Counter {
-    BYTES_READ
-  }
+	public static enum Counter {
+		BYTES_READ
+	}
 
-  /** 
-   * Generate the splits for the logical block (This function is called at the MRapp master).
-   * @param job the job context
-   * @throws IOException if fails to open the given input file
-   */
-  @Override
-  public List<InputSplit> getSplits(JobContext job) throws IOException {
-    LOG.info("LeanInputFormat Entered");
-    VeloxDFS vdfs = new VeloxDFS();
+	public List<InputSplit> getSplits(JobContext job) throws IOException {
+		int task_id = job.getJobID().hashCode();
+		if(task_id < 0){
+			task_id *= -1;
+		}
+		task_id %= 1000;
 
-    // Setup Zookeeper ZNODES
-    String zkAddress   = job.getConfiguration().get("velox.recordreader.zk-addr", 
-        "192.168.0.101:2181");
-    LeanSession session = new LeanSession(zkAddress, job.getJobID().toString(), 500000);
-    session.setupZk();
-    session.close();
+		VeloxDFS vdfs = new VeloxDFS(job.getJobID().toString(), task_id, true);
 
-    // Generate Logical Block distribution
-    Configuration conf = job.getConfiguration();
-    String filePath = conf.get("velox.inputfile");
-    long fd = vdfs.open(filePath);
-    Metadata md = vdfs.getMetadata(fd, (byte)3);
+		// Setup Zookeeper ZNODES
+		String zkAddress   = job.getConfiguration().get("velox.recordreader.zk-addr", "172.20.1.80:2381");
 
-    // Set important variables 
-    conf.set("velox.numChunks", String.valueOf(md.numChunks));
-    conf.set("velox.numStaticChunks", String.valueOf(md.numStaticBlocks));
+		LOG.info("zkAddress: " + zkAddress + " " + job.getJobID().toString());
+		LeanSession session = new LeanSession(zkAddress, job.getJobID().toString(), 500000);
+		session.setupZk();
+		session.close();
 
-    // Generate the splits per each generated logical block
-    List<InputSplit> splits = new ArrayList<InputSplit>();
-    int totalChunks = 0;
-    for (int i = 0; i < md.numBlock; i++) {
-      LeanInputSplit split = new LeanInputSplit(md.blocks[i].name, md.blocks[i].host, 
-          md.blocks[i].size);
+		// Generate Logical Block distribution
+		Configuration conf = job.getConfiguration();
+		String filePath = conf.get("velox.inputfile");
+		String jobID = job.getJobID().toString();
 
-      for (BlockMetadata chunk : md.blocks[i].chunks) {
-        split.addChunk(chunk.name, chunk.size, chunk.index);
-        totalChunks++;
-      }
-      splits.add(split);
-      LOG.info("P: " + md.blocks[i].name + " len: "  + md.blocks[i].size
-          + " host: "  + md.blocks[i].host + " numChunks: " + md.blocks[i].chunks.length);
-    }
+		long fd = vdfs.open(filePath);
+		Metadata md = vdfs.getMetadata(fd, (byte)3);
+		long slotNum = Integer.parseInt(job.getConfiguration().get("mapreduce.task.slot"));
+		long MinSplitSize = Integer.parseInt(job.getConfiguration().get("velox.recordreader.buffersize")); 
+		// Set important variables 
+		// Generate the splits per each generated logical block
+		List<InputSplit> splits = new ArrayList<InputSplit>();
 
-    LOG.info("Total number of chunks " + md.numChunks);
-    vdfs.close(fd);
-    return splits;
-  }
+		for (int i = 0; i < md.numBlock; i++) { // md.numBlock => md.numSlot
+			//long sNum = md.blocks[i].size % MinSplitSize == 0 ? md.blocks[i].size / MinSplitSize : md.blocks[i].size / MinSplitSize + 1;  
+			long sNum = md.blocks[i].size / MinSplitSize + 1 + 15;  
+			// For multiwaves
+			sNum = sNum > slotNum ? slotNum : sNum; // disable multiple wave
+			//long sNum = slotNum;
+			LOG.info("SplitSize : " + md.blocks[i].size + " SlotNum : " + sNum + " host: " + md.blocks[i].host);
+			for(long j = 0; j < sNum; j++){
+				LeanInputSplit split = new LeanInputSplit(md.blocks[i].name, md.blocks[i].host, jobID, task_id);
+				splits.add(split);
+			}
+		}
 
-  /** 
-   * Creates a LeanRecordReader from the split (this function is called remotely).
-   * @param split the split to be processed
-   * @param context the task context
-   * @throws IOException if fails to create a record reader
-   */
-  @Override
-  public RecordReader<LongWritable, Text> createRecordReader(InputSplit split, 
-      TaskAttemptContext context) throws IOException, InterruptedException {
-    return new LeanRecordReader();
-  }
+		LOG.info("Total number of chunks " + md.numChunks);
+		vdfs.close(fd);
+		return splits;
+	}
+
+	public RecordReader<LongWritable, Text> createRecordReader(InputSplit split, 
+			TaskAttemptContext context) throws IOException, InterruptedException {
+		return new LeanRecordReader();
+	}
 }

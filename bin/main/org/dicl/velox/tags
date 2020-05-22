@@ -1,0 +1,406 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+AggregateWordCount	benchmark/AggregateWordCount.java	/^public class AggregateWordCount {$/;"	c
+BYTES_READ	mapreduce/LeanInputFormat.java	/^    BYTES_READ$/;"	e	enum:LeanInputFormat.Counter	file:
+BYTES_READ	mapreduce/VDFSInputFormat.java	/^      BYTES_READ$/;"	e	enum:VDFSInputFormat.Counter	file:
+Chunk	mapreduce/Chunk.java	/^  public Chunk()  { }$/;"	m	class:Chunk
+Chunk	mapreduce/Chunk.java	/^  public Chunk(String fileName, long size, long index, long offset, String host)  {$/;"	m	class:Chunk
+Chunk	mapreduce/Chunk.java	/^public class Chunk implements Writable {$/;"	c
+Counter	mapreduce/LeanInputFormat.java	/^  public static enum Counter {$/;"	g	class:LeanInputFormat
+Counter	mapreduce/VDFSInputFormat.java	/^  public static enum Counter {$/;"	g	class:VDFSInputFormat
+DEFAULT_BUFFER_SIZE	fs/VeloxFSInputStream.java	/^  private static final int DEFAULT_BUFFER_SIZE = 1 << 21; \/\/ 2 MiB$/;"	f	class:VeloxFSInputStream	file:
+DEFAULT_BUFFER_SIZE	mapreduce/LeanRecordReader.java	/^  private static final int DEFAULT_BUFFER_SIZE = 2 << 20; \/\/ 2 MiB$/;"	f	class:LeanRecordReader	file:
+DEFAULT_BUFFER_SIZE	mapreduce/VDFSRecordReader.java	/^    private static final int DEFAULT_BUFFER_SIZE = 2 << 20; \/\/ 2 MiB$/;"	f	class:VDFSRecordReader	file:
+DEFAULT_LINE_BUFFER_SIZE	mapreduce/LeanRecordReader.java	/^  private static final int DEFAULT_LINE_BUFFER_SIZE = 8 << 20; \/\/ 8 MiB$/;"	f	class:LeanRecordReader	file:
+DEFAULT_LINE_BUFFER_SIZE	mapreduce/VDFSRecordReader.java	/^    private static final int DEFAULT_LINE_BUFFER_SIZE = 8 << 10; \/\/ 8 KiB$/;"	f	class:VDFSRecordReader	file:
+DEFAULT_ZOOKEEPER_TIMEOUT_MS	mapreduce/LeanRecordReader.java	/^  private static final int DEFAULT_ZOOKEEPER_TIMEOUT_MS = 180000; \/\/ 180s$/;"	f	class:LeanRecordReader	file:
+END_TAG_KEY	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/XmlInputFormat.java	/^    public static final String END_TAG_KEY = "xmlinput.end";$/;"	f	class:XmlInputFormat
+END_TAG_KEY	benchmark/job1/xmlhakker/XmlInputFormat.java	/^    public static final String END_TAG_KEY = "xmlinput.end";$/;"	f	class:XmlInputFormat
+EOF	fs/VeloxFSInputStream.java	/^  private boolean EOF = false;$/;"	f	class:VeloxFSInputStream	file:
+ExampleDriver	benchmark/ExampleDriver.java	/^public class ExampleDriver {$/;"	c
+Grep	benchmark/Grep.java	/^  private Grep() {}                               \/\/ singleton$/;"	m	class:Grep	file:
+Grep	benchmark/Grep.java	/^public class Grep extends Configured implements Tool {$/;"	c
+IntSumReducer	benchmark/LeanWordCount.java	/^  public static class IntSumReducer $/;"	c	class:LeanWordCount
+IntSumReducer	benchmark/WordCount.java	/^  public static class IntSumReducer $/;"	c	class:WordCount
+LOG	benchmark/LeanGrep.java	/^  private static final Log LOG = LogFactory.getLog(LeanGrep.class);$/;"	f	class:LeanGrep	file:
+LOG	fs/VeloxFSInputStream.java	/^  private static final Log LOG = LogFactory.getLog(VeloxFSInputStream.class);$/;"	f	class:VeloxFSInputStream	file:
+LOG	fs/VeloxFSOutputStream.java	/^  private static final Log LOG = LogFactory.getLog(VeloxFSOutputStream.class);$/;"	f	class:VeloxFSOutputStream	file:
+LOG	fs/VeloxFileSystem.java	/^  private static final Log LOG = LogFactory.getLog(VeloxFileSystem.class);$/;"	f	class:VeloxFileSystem	file:
+LOG	mapreduce/LeanInputFormat.java	/^  private static final Log LOG = LogFactory.getLog(LeanInputFormat.class);$/;"	f	class:LeanInputFormat	file:
+LOG	mapreduce/LeanRecordReader.java	/^  private static final Log LOG = LogFactory.getLog(LeanRecordReader.class);$/;"	f	class:LeanRecordReader	file:
+LOG	mapreduce/LeanSession.java	/^  private static final Log LOG = LogFactory.getLog(LeanSession.class);$/;"	f	class:LeanSession	file:
+LOG	mapreduce/VDFSInputFormat.java	/^  private static final Log LOG = LogFactory.getLog(VDFSInputFormat.class);$/;"	f	class:VDFSInputFormat	file:
+LOG	mapreduce/VDFSRecordReader.java	/^    private static final Log LOG = LogFactory.getLog(VDFSRecordReader.class);$/;"	f	class:VDFSRecordReader	file:
+LeanAggregateWordCount	benchmark/LeanAggregateWordCount.java	/^public class LeanAggregateWordCount {$/;"	c
+LeanGrep	benchmark/LeanGrep.java	/^  private LeanGrep() {}                               \/\/ singleton$/;"	m	class:LeanGrep	file:
+LeanGrep	benchmark/LeanGrep.java	/^public class LeanGrep extends Configured implements Tool {$/;"	c
+LeanInputFormat	mapreduce/LeanInputFormat.java	/^public class LeanInputFormat extends InputFormat<LongWritable, Text> {$/;"	c
+LeanInputSplit	mapreduce/LeanInputSplit.java	/^  public LeanInputSplit() {$/;"	m	class:LeanInputSplit
+LeanInputSplit	mapreduce/LeanInputSplit.java	/^  public LeanInputSplit(String name, String host, long size ) {$/;"	m	class:LeanInputSplit
+LeanInputSplit	mapreduce/LeanInputSplit.java	/^public class LeanInputSplit extends InputSplit implements Writable {$/;"	c
+LeanJoin	benchmark/LeanJoin.java	/^public class LeanJoin extends Configured implements Tool {$/;"	c
+LeanRecordReader	mapreduce/LeanRecordReader.java	/^  public LeanRecordReader() { }$/;"	m	class:LeanRecordReader
+LeanRecordReader	mapreduce/LeanRecordReader.java	/^public class LeanRecordReader extends RecordReader<LongWritable, Text> {$/;"	c
+LeanSession	mapreduce/LeanSession.java	/^  public LeanSession(String addr, String jobId, int timeout) {$/;"	m	class:LeanSession
+LeanSession	mapreduce/LeanSession.java	/^public class LeanSession {$/;"	c
+LeanSort	benchmark/LeanSort.java	/^public class LeanSort<K,V> extends Configured implements Tool {$/;"	c
+LeanWordCount	benchmark/LeanWordCount.java	/^public class LeanWordCount {$/;"	c
+NAME	fs/VeloxFileSystem.java	/^  public static final URI NAME = URI.create(VELOX_URI_SCHEME + ":\/\/\/");$/;"	f	class:VeloxFileSystem
+REDUCES_PER_HOST	benchmark/LeanJoin.java	/^  public static final String REDUCES_PER_HOST = "mapreduce.join.reduces_per_host";$/;"	f	class:LeanJoin
+REDUCES_PER_HOST	benchmark/LeanSort.java	/^  public static final String REDUCES_PER_HOST = $/;"	f	class:LeanSort
+RankCalculateMapper	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job2/calculate/RankCalculateMapper.java	/^public class RankCalculateMapper extends Mapper<LongWritable, Text, Text, Text> {$/;"	c
+RankCalculateMapper	benchmark/job2/calculate/RankCalculateMapper.java	/^public class RankCalculateMapper extends Mapper<LongWritable, Text, Text, Text> {$/;"	c
+RankCalculateReduce	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job2/calculate/RankCalculateReduce.java	/^public class RankCalculateReduce extends Reducer<Text, Text, Text, Text> {$/;"	c
+RankCalculateReduce	benchmark/job2/calculate/RankCalculateReduce.java	/^public class RankCalculateReduce extends Reducer<Text, Text, Text, Text> {$/;"	c
+RankingMapper	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job3/result/RankingMapper.java	/^public class RankingMapper extends Mapper<LongWritable, Text, FloatWritable, Text> {$/;"	c
+RankingMapper	benchmark/job3/result/RankingMapper.java	/^public class RankingMapper extends Mapper<LongWritable, Text, FloatWritable, Text> {$/;"	c
+START_TAG_KEY	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/XmlInputFormat.java	/^    public static final String START_TAG_KEY = "xmlinput.start";$/;"	f	class:XmlInputFormat
+START_TAG_KEY	benchmark/job1/xmlhakker/XmlInputFormat.java	/^    public static final String START_TAG_KEY = "xmlinput.start";$/;"	f	class:XmlInputFormat
+TokenizerMapper	benchmark/LeanWordCount.java	/^  public static class TokenizerMapper $/;"	c	class:LeanWordCount
+TokenizerMapper	benchmark/WordCount.java	/^  public static class TokenizerMapper $/;"	c	class:WordCount
+VDFSInputFormat	mapreduce/VDFSInputFormat.java	/^  public VDFSInputFormat() {$/;"	m	class:VDFSInputFormat
+VDFSInputFormat	mapreduce/VDFSInputFormat.java	/^public class VDFSInputFormat extends InputFormat<LongWritable, Text> {$/;"	c
+VDFSInputSplit	mapreduce/VDFSInputSplit.java	/^    public VDFSInputSplit() {$/;"	m	class:VDFSInputSplit
+VDFSInputSplit	mapreduce/VDFSInputSplit.java	/^    public VDFSInputSplit(String name, String host, long size) {$/;"	m	class:VDFSInputSplit
+VDFSInputSplit	mapreduce/VDFSInputSplit.java	/^public class VDFSInputSplit extends InputSplit implements Writable {$/;"	c
+VDFSLauncher	benchmark/VDFSLauncher.java	/^public class VDFSLauncher {$/;"	c
+VDFSRecordReader	mapreduce/VDFSRecordReader.java	/^    public VDFSRecordReader() { }$/;"	m	class:VDFSRecordReader
+VDFSRecordReader	mapreduce/VDFSRecordReader.java	/^public class VDFSRecordReader extends RecordReader<LongWritable, Text> {$/;"	c
+VELOX_URI_SCHEME	fs/VeloxFileSystem.java	/^  public static final String VELOX_URI_SCHEME = "velox";$/;"	f	class:VeloxFileSystem
+VeloxFSInputStream	fs/VeloxFSInputStream.java	/^  public VeloxFSInputStream() {$/;"	m	class:VeloxFSInputStream
+VeloxFSInputStream	fs/VeloxFSInputStream.java	/^  public VeloxFSInputStream(VeloxDFS vdfs, long fd, int bufferSize, long fileSize) {$/;"	m	class:VeloxFSInputStream
+VeloxFSInputStream	fs/VeloxFSInputStream.java	/^public class VeloxFSInputStream extends FSInputStream {$/;"	c
+VeloxFSOutputStream	fs/VeloxFSOutputStream.java	/^  public VeloxFSOutputStream() {$/;"	m	class:VeloxFSOutputStream
+VeloxFSOutputStream	fs/VeloxFSOutputStream.java	/^  public VeloxFSOutputStream(VeloxDFS _vdfs, long _fd, int bufferSize) {$/;"	m	class:VeloxFSOutputStream
+VeloxFSOutputStream	fs/VeloxFSOutputStream.java	/^public class VeloxFSOutputStream extends OutputStream {$/;"	c
+VeloxFileSystem	fs/VeloxFileSystem.java	/^  public VeloxFileSystem() {$/;"	m	class:VeloxFileSystem
+VeloxFileSystem	fs/VeloxFileSystem.java	/^public class VeloxFileSystem extends FileSystem {$/;"	c
+VeloxFs	fs/VeloxFs.java	/^  VeloxFs(final URI theUri, final Configuration conf) throws IOException,$/;"	m	class:VeloxFs
+VeloxFs	fs/VeloxFs.java	/^public class VeloxFs extends DelegateToFileSystem {$/;"	c
+WikiLinksReducer	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/WikiLinksReducer.java	/^public class WikiLinksReducer extends Reducer<Text, Text, Text, Text> {$/;"	c
+WikiLinksReducer	benchmark/job1/xmlhakker/WikiLinksReducer.java	/^public class WikiLinksReducer extends Reducer<Text, Text, Text, Text> {$/;"	c
+WikiPageLinksMapper	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/WikiPageLinksMapper.java	/^public class WikiPageLinksMapper extends Mapper<LongWritable, Text, Text, Text> {$/;"	c
+WikiPageLinksMapper	benchmark/job1/xmlhakker/WikiPageLinksMapper.java	/^public class WikiPageLinksMapper extends Mapper<LongWritable, Text, Text, Text> {$/;"	c
+WikiPageRanking	benchmark/WikiPageRanking.java	/^public class WikiPageRanking extends Configured implements Tool {$/;"	c
+WikiPageRanking	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/WikiPageRanking.java	/^public class WikiPageRanking extends Configured implements Tool {$/;"	c
+WordCount	benchmark/WordCount.java	/^public class WordCount {$/;"	c
+WordCountPlugInClass	benchmark/AggregateWordCount.java	/^  public static class WordCountPlugInClass extends$/;"	c	class:AggregateWordCount
+WordCountPlugInClass	benchmark/LeanAggregateWordCount.java	/^  public static class WordCountPlugInClass extends$/;"	c	class:LeanAggregateWordCount
+XmlInputFormat	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/XmlInputFormat.java	/^public class XmlInputFormat extends TextInputFormat {$/;"	c
+XmlInputFormat	benchmark/job1/xmlhakker/XmlInputFormat.java	/^public class XmlInputFormat extends TextInputFormat {$/;"	c
+XmlRecordReader	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/XmlInputFormat.java	/^        public XmlRecordReader(FileSplit split, TaskAttemptContext context) throws IOException {$/;"	m	class:XmlInputFormat.XmlRecordReader
+XmlRecordReader	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/XmlInputFormat.java	/^    public static class XmlRecordReader extends RecordReader<LongWritable, Text> {$/;"	c	class:XmlInputFormat
+XmlRecordReader	benchmark/job1/xmlhakker/XmlInputFormat.java	/^        public XmlRecordReader(FileSplit split, TaskAttemptContext context) throws IOException {$/;"	m	class:XmlInputFormat.XmlRecordReader
+XmlRecordReader	benchmark/job1/xmlhakker/XmlInputFormat.java	/^    public static class XmlRecordReader extends RecordReader<LongWritable, Text> {$/;"	c	class:XmlInputFormat
+ZKconnectCallable	mapreduce/LeanRecordReader.java	/^  static class ZKconnectCallable extends CompletableFuture<Boolean> implements Watcher {$/;"	c	class:LeanRecordReader
+addChunk	mapreduce/LeanInputSplit.java	/^  public void addChunk(String fname, long size, long seq, long offset, String host) {$/;"	m	class:LeanInputSplit
+addChunk	mapreduce/VDFSInputSplit.java	/^    public void addChunk(String fname, long size, long seq, long offset, String host) {$/;"	m	class:VDFSInputSplit
+append	fs/VeloxFileSystem.java	/^  public FSDataOutputStream append(Path path, int bufferSize,$/;"	m	class:VeloxFileSystem
+available	fs/VeloxFSInputStream.java	/^  public synchronized int available() throws IOException {$/;"	m	class:VeloxFSInputStream
+bufUsed	fs/VeloxFSOutputStream.java	/^  private int bufUsed = 0; \/\/ offset of the buffer$/;"	f	class:VeloxFSOutputStream	file:
+buffer	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/XmlInputFormat.java	/^        private final DataOutputBuffer buffer = new DataOutputBuffer();$/;"	f	class:XmlInputFormat.XmlRecordReader	file:
+buffer	benchmark/job1/xmlhakker/XmlInputFormat.java	/^        private final DataOutputBuffer buffer = new DataOutputBuffer();$/;"	f	class:XmlInputFormat.XmlRecordReader	file:
+buffer	fs/VeloxFSInputStream.java	/^  private byte[] buffer;$/;"	f	class:VeloxFSInputStream	file:
+buffer	fs/VeloxFSOutputStream.java	/^  private byte[] buffer;$/;"	f	class:VeloxFSOutputStream	file:
+buffer	mapreduce/LeanRecordReader.java	/^  private byte[] buffer;$/;"	f	class:LeanRecordReader	file:
+buffer	mapreduce/VDFSRecordReader.java	/^    private byte[] buffer;$/;"	f	class:VDFSRecordReader	file:
+bufferOffset	fs/VeloxFSInputStream.java	/^  private int bufferOffset = 0;$/;"	f	class:VeloxFSInputStream	file:
+bufferOffset	mapreduce/LeanRecordReader.java	/^  private int bufferOffset = 0;$/;"	f	class:LeanRecordReader	file:
+bufferOffset	mapreduce/VDFSRecordReader.java	/^    private int bufferOffset = 0;$/;"	f	class:VDFSRecordReader	file:
+change_idx	mapreduce/LeanRecordReader.java	/^	public int [] change_idx = new int[3];$/;"	f	class:LeanRecordReader
+checkOpen	fs/VeloxFSOutputStream.java	/^  private synchronized void checkOpen() throws IOException {$/;"	m	class:VeloxFSOutputStream	file:
+chunks	mapreduce/LeanInputSplit.java	/^  public ArrayList<Chunk> chunks;$/;"	f	class:LeanInputSplit
+chunks	mapreduce/VDFSInputSplit.java	/^    public ArrayList<Chunk> chunks;$/;"	f	class:VDFSInputSplit
+close	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/XmlInputFormat.java	/^        public void close() throws IOException {$/;"	m	class:XmlInputFormat.XmlRecordReader
+close	benchmark/job1/xmlhakker/XmlInputFormat.java	/^        public void close() throws IOException {$/;"	m	class:XmlInputFormat.XmlRecordReader
+close	fs/VeloxFSInputStream.java	/^  public void close() throws IOException {$/;"	m	class:VeloxFSInputStream
+close	fs/VeloxFSOutputStream.java	/^  public synchronized void close() throws IOException {$/;"	m	class:VeloxFSOutputStream
+close	fs/VeloxFileSystem.java	/^  public void close() throws IOException {$/;"	m	class:VeloxFileSystem
+close	mapreduce/LeanRecordReader.java	/^  public void close() throws IOException {$/;"	m	class:LeanRecordReader
+close	mapreduce/LeanSession.java	/^  public void close() {$/;"	m	class:LeanSession
+close	mapreduce/VDFSRecordReader.java	/^    public void close() throws IOException {$/;"	m	class:VDFSRecordReader
+closed	fs/VeloxFSInputStream.java	/^  private boolean closed = false;$/;"	f	class:VeloxFSInputStream	file:
+closed	fs/VeloxFSOutputStream.java	/^  private boolean closed;$/;"	f	class:VeloxFSOutputStream	file:
+com.xebia.sandbox.hadoop	benchmark/WikiPageRanking.java	/^package com.xebia.sandbox.hadoop;$/;"	p
+com.xebia.sandbox.hadoop	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/WikiPageRanking.java	/^package com.xebia.sandbox.hadoop;$/;"	p
+com.xebia.sandbox.hadoop.job1.xmlhakker	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/WikiLinksReducer.java	/^package com.xebia.sandbox.hadoop.job1.xmlhakker;$/;"	p
+com.xebia.sandbox.hadoop.job1.xmlhakker	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/WikiPageLinksMapper.java	/^package com.xebia.sandbox.hadoop.job1.xmlhakker;$/;"	p
+com.xebia.sandbox.hadoop.job1.xmlhakker	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/XmlInputFormat.java	/^package com.xebia.sandbox.hadoop.job1.xmlhakker;$/;"	p
+com.xebia.sandbox.hadoop.job1.xmlhakker	benchmark/job1/xmlhakker/WikiLinksReducer.java	/^package com.xebia.sandbox.hadoop.job1.xmlhakker;$/;"	p
+com.xebia.sandbox.hadoop.job1.xmlhakker	benchmark/job1/xmlhakker/WikiPageLinksMapper.java	/^package com.xebia.sandbox.hadoop.job1.xmlhakker;$/;"	p
+com.xebia.sandbox.hadoop.job1.xmlhakker	benchmark/job1/xmlhakker/XmlInputFormat.java	/^package com.xebia.sandbox.hadoop.job1.xmlhakker;$/;"	p
+com.xebia.sandbox.hadoop.job2.calculate	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job2/calculate/RankCalculateMapper.java	/^package com.xebia.sandbox.hadoop.job2.calculate;$/;"	p
+com.xebia.sandbox.hadoop.job2.calculate	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job2/calculate/RankCalculateReduce.java	/^package com.xebia.sandbox.hadoop.job2.calculate;$/;"	p
+com.xebia.sandbox.hadoop.job2.calculate	benchmark/job2/calculate/RankCalculateMapper.java	/^package com.xebia.sandbox.hadoop.job2.calculate;$/;"	p
+com.xebia.sandbox.hadoop.job2.calculate	benchmark/job2/calculate/RankCalculateReduce.java	/^package com.xebia.sandbox.hadoop.job2.calculate;$/;"	p
+com.xebia.sandbox.hadoop.job3.result	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job3/result/RankingMapper.java	/^package com.xebia.sandbox.hadoop.job3.result;$/;"	p
+com.xebia.sandbox.hadoop.job3.result	benchmark/job3/result/RankingMapper.java	/^package com.xebia.sandbox.hadoop.job3.result;$/;"	p
+connSignal	mapreduce/LeanSession.java	/^  CountDownLatch connSignal = new CountDownLatch(0);$/;"	f	class:LeanSession
+create	fs/VeloxFileSystem.java	/^  public FSDataOutputStream create(Path path, FsPermission permission,$/;"	m	class:VeloxFileSystem
+createNonRecursive	fs/VeloxFileSystem.java	/^  public FSDataOutputStream createNonRecursive(Path path, FsPermission permission,$/;"	m	class:VeloxFileSystem
+createRecordReader	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/XmlInputFormat.java	/^    public RecordReader<LongWritable, Text> createRecordReader(InputSplit split, TaskAttemptContext context) {$/;"	m	class:XmlInputFormat
+createRecordReader	benchmark/job1/xmlhakker/XmlInputFormat.java	/^    public RecordReader<LongWritable, Text> createRecordReader(InputSplit split, TaskAttemptContext context) {$/;"	m	class:XmlInputFormat
+createRecordReader	mapreduce/LeanInputFormat.java	/^  public RecordReader<LongWritable, Text> createRecordReader(InputSplit split, $/;"	m	class:LeanInputFormat
+createRecordReader	mapreduce/VDFSInputFormat.java	/^  public RecordReader<LongWritable, Text> createRecordReader(InputSplit split, TaskAttemptContext context) $/;"	m	class:VDFSInputFormat
+currentSplitNumChunks	mapreduce/LeanRecordReader.java	/^  private int currentSplitNumChunks;$/;"	f	class:LeanRecordReader	file:
+currentchunk	mapreduce/LeanRecordReader.java	/^  private int currentchunk = 0;$/;"	f	class:LeanRecordReader	file:
+damping	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job2/calculate/RankCalculateReduce.java	/^    private static final float damping = 0.85F;$/;"	f	class:RankCalculateReduce	file:
+damping	benchmark/job2/calculate/RankCalculateReduce.java	/^    private static final float damping = 0.85F;$/;"	f	class:RankCalculateReduce	file:
+defaultDirPermission	fs/VeloxFileSystem.java	/^  private FsPermission defaultDirPermission;\/\/ = FsPermission.getDirDefault().applyUMask(FsPermission.getUMask(getConf()));$/;"	f	class:VeloxFileSystem	file:
+defaultFilePermission	fs/VeloxFileSystem.java	/^  private FsPermission defaultFilePermission;\/\/ = FsPermission.getFileDefault().applyUMask(FsPermission.getUMask(getConf()));$/;"	f	class:VeloxFileSystem	file:
+delete	fs/VeloxFileSystem.java	/^    public boolean delete(Path path) throws IOException {$/;"	m	class:VeloxFileSystem
+delete	fs/VeloxFileSystem.java	/^  public boolean delete(Path path, boolean recursive) throws IOException {$/;"	m	class:VeloxFileSystem
+deleteChunks	mapreduce/LeanSession.java	/^  public void deleteChunks() {$/;"	m	class:LeanSession
+end	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/XmlInputFormat.java	/^        private final long end;$/;"	f	class:XmlInputFormat.XmlRecordReader	file:
+end	benchmark/job1/xmlhakker/XmlInputFormat.java	/^        private final long end;$/;"	f	class:XmlInputFormat.XmlRecordReader	file:
+endConnect	mapreduce/LeanRecordReader.java	/^  private long endConnect = 0;$/;"	f	class:LeanRecordReader	file:
+endTag	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/XmlInputFormat.java	/^        private final byte[] endTag;$/;"	f	class:XmlInputFormat.XmlRecordReader	file:
+endTag	benchmark/job1/xmlhakker/XmlInputFormat.java	/^        private final byte[] endTag;$/;"	f	class:XmlInputFormat.XmlRecordReader	file:
+exists	fs/VeloxFileSystem.java	/^  public boolean exists(Path f) throws IOException {$/;"	m	class:VeloxFileSystem
+fd	fs/VeloxFSInputStream.java	/^  private long fd = 0;$/;"	f	class:VeloxFSInputStream	file:
+fd	fs/VeloxFSOutputStream.java	/^  private long fd;$/;"	f	class:VeloxFSOutputStream	file:
+fd	mapreduce/VDFSRecordReader.java	/^    private int fd = 0;$/;"	f	class:VDFSRecordReader	file:
+fileName	mapreduce/Chunk.java	/^  public String fileName;$/;"	f	class:Chunk
+fileSize	fs/VeloxFSInputStream.java	/^  private long fileSize = 0;$/;"	f	class:VeloxFSInputStream	file:
+finalize	fs/VeloxFSInputStream.java	/^  protected void finalize() throws Throwable {$/;"	m	class:VeloxFSInputStream
+finalize	fs/VeloxFSOutputStream.java	/^  protected void finalize() throws Throwable {$/;"	m	class:VeloxFSOutputStream
+first	mapreduce/LeanRecordReader.java	/^  private boolean first = true;$/;"	f	class:LeanRecordReader	file:
+flush	fs/VeloxFSOutputStream.java	/^  public synchronized void flush() throws IOException {$/;"	m	class:VeloxFSOutputStream
+fsin	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/XmlInputFormat.java	/^        private final FSDataInputStream fsin;$/;"	f	class:XmlInputFormat.XmlRecordReader	file:
+fsin	benchmark/job1/xmlhakker/XmlInputFormat.java	/^        private final FSDataInputStream fsin;$/;"	f	class:XmlInputFormat.XmlRecordReader	file:
+fullPath	mapreduce/LeanSession.java	/^  private String fullPath;$/;"	f	class:LeanSession	file:
+generateKeyValPairs	benchmark/AggregateWordCount.java	/^    public ArrayList<Entry<Text, Text>> generateKeyValPairs(Object key,$/;"	m	class:AggregateWordCount.WordCountPlugInClass
+generateKeyValPairs	benchmark/LeanAggregateWordCount.java	/^    public ArrayList<Entry<Text, Text>> generateKeyValPairs(Object key,$/;"	m	class:LeanAggregateWordCount.WordCountPlugInClass
+getCurrentKey	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/XmlInputFormat.java	/^        public LongWritable getCurrentKey() throws IOException, InterruptedException {$/;"	m	class:XmlInputFormat.XmlRecordReader
+getCurrentKey	benchmark/job1/xmlhakker/XmlInputFormat.java	/^        public LongWritable getCurrentKey() throws IOException, InterruptedException {$/;"	m	class:XmlInputFormat.XmlRecordReader
+getCurrentKey	mapreduce/LeanRecordReader.java	/^  public LongWritable getCurrentKey() throws IOException, InterruptedException {$/;"	m	class:LeanRecordReader
+getCurrentKey	mapreduce/VDFSRecordReader.java	/^    public LongWritable getCurrentKey() throws IOException, InterruptedException {$/;"	m	class:VDFSRecordReader
+getCurrentValue	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/XmlInputFormat.java	/^        public Text getCurrentValue() throws IOException, InterruptedException {$/;"	m	class:XmlInputFormat.XmlRecordReader
+getCurrentValue	benchmark/job1/xmlhakker/XmlInputFormat.java	/^        public Text getCurrentValue() throws IOException, InterruptedException {$/;"	m	class:XmlInputFormat.XmlRecordReader
+getCurrentValue	mapreduce/LeanRecordReader.java	/^  public Text getCurrentValue() throws IOException, InterruptedException {$/;"	m	class:LeanRecordReader
+getCurrentValue	mapreduce/VDFSRecordReader.java	/^    public Text getCurrentValue() throws IOException, InterruptedException {$/;"	m	class:VDFSRecordReader
+getDefaultBlockSize	fs/VeloxFileSystem.java	/^  public long getDefaultBlockSize() {$/;"	m	class:VeloxFileSystem
+getDefaultReplication	fs/VeloxFileSystem.java	/^  public short getDefaultReplication() {$/;"	m	class:VeloxFileSystem
+getFileBlockLocations	fs/VeloxFileSystem.java	/^  public BlockLocation[] getFileBlockLocations(FileStatus file, long start, long len) throws IOException {$/;"	m	class:VeloxFileSystem
+getFileStatus	fs/VeloxFileSystem.java	/^  public FileStatus getFileStatus(Path path) throws IOException {$/;"	m	class:VeloxFileSystem
+getLength	mapreduce/LeanInputSplit.java	/^  public long getLength() throws IOException {$/;"	m	class:LeanInputSplit
+getLength	mapreduce/VDFSInputSplit.java	/^    public long getLength() throws IOException {$/;"	m	class:VDFSInputSplit
+getLocations	mapreduce/LeanInputSplit.java	/^  public String[] getLocations() throws IOException {$/;"	m	class:LeanInputSplit
+getLocations	mapreduce/VDFSInputSplit.java	/^    public String[] getLocations() throws IOException {$/;"	m	class:VDFSInputSplit
+getNextChunk	mapreduce/LeanRecordReader.java	/^  private int getNextChunk() {$/;"	m	class:LeanRecordReader	file:
+getPageAndRank	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job3/result/RankingMapper.java	/^    private String[] getPageAndRank(LongWritable key, Text value) throws CharacterCodingException {$/;"	m	class:RankingMapper	file:
+getPageAndRank	benchmark/job3/result/RankingMapper.java	/^    private String[] getPageAndRank(LongWritable key, Text value) throws CharacterCodingException {$/;"	m	class:RankingMapper	file:
+getPos	fs/VeloxFSInputStream.java	/^  public synchronized long getPos() throws IOException {$/;"	m	class:VeloxFSInputStream
+getPos	fs/VeloxFSOutputStream.java	/^  public synchronized int getPos() {$/;"	m	class:VeloxFSOutputStream
+getProgress	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/XmlInputFormat.java	/^        public float getProgress() throws IOException {$/;"	m	class:XmlInputFormat.XmlRecordReader
+getProgress	benchmark/job1/xmlhakker/XmlInputFormat.java	/^        public float getProgress() throws IOException {$/;"	m	class:XmlInputFormat.XmlRecordReader
+getProgress	mapreduce/LeanRecordReader.java	/^  public float getProgress() throws IOException, InterruptedException {$/;"	m	class:LeanRecordReader
+getProgress	mapreduce/VDFSRecordReader.java	/^    public float getProgress() throws IOException, InterruptedException {$/;"	m	class:VDFSRecordReader
+getResult	benchmark/LeanSort.java	/^  public Job getResult() {$/;"	m	class:LeanSort
+getScheme	fs/VeloxFileSystem.java	/^  public String getScheme() {$/;"	m	class:VeloxFileSystem
+getSplits	mapreduce/LeanInputFormat.java	/^  public List<InputSplit> getSplits(JobContext job) throws IOException {$/;"	m	class:LeanInputFormat
+getSplits	mapreduce/VDFSInputFormat.java	/^  public List<InputSplit> getSplits(JobContext job) throws IOException {$/;"	m	class:VDFSInputFormat
+getStatus	fs/VeloxFileSystem.java	/^  public FsStatus getStatus(Path p) throws IOException {$/;"	m	class:VeloxFileSystem
+getUri	fs/VeloxFileSystem.java	/^  public URI getUri() {$/;"	m	class:VeloxFileSystem
+getUriDefaultPort	fs/VeloxFs.java	/^  public int getUriDefaultPort() {$/;"	m	class:VeloxFs
+getWikiPageFromLink	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/WikiPageLinksMapper.java	/^    private String getWikiPageFromLink(String aLink){$/;"	m	class:WikiPageLinksMapper	file:
+getWikiPageFromLink	benchmark/job1/xmlhakker/WikiPageLinksMapper.java	/^    private String getWikiPageFromLink(String aLink){$/;"	m	class:WikiPageLinksMapper	file:
+getWorkingDirectory	fs/VeloxFileSystem.java	/^  public Path getWorkingDirectory() {$/;"	m	class:VeloxFileSystem
+host	mapreduce/Chunk.java	/^	public String host;$/;"	f	class:Chunk
+host	mapreduce/LeanInputSplit.java	/^  public String host;$/;"	f	class:LeanInputSplit
+host	mapreduce/VDFSInputSplit.java	/^    public String host;$/;"	f	class:VDFSInputSplit
+index	mapreduce/Chunk.java	/^  public long index;$/;"	f	class:Chunk
+initialize	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/XmlInputFormat.java	/^        public void initialize(InputSplit split, TaskAttemptContext context) throws IOException, InterruptedException {$/;"	m	class:XmlInputFormat.XmlRecordReader
+initialize	benchmark/job1/xmlhakker/XmlInputFormat.java	/^        public void initialize(InputSplit split, TaskAttemptContext context) throws IOException, InterruptedException {$/;"	m	class:XmlInputFormat.XmlRecordReader
+initialize	fs/VeloxFileSystem.java	/^  public void initialize(URI uri, org.apache.hadoop.conf.Configuration conf) throws IOException {$/;"	m	class:VeloxFileSystem
+initialize	mapreduce/LeanRecordReader.java	/^  public void initialize(InputSplit split, TaskAttemptContext context) $/;"	m	class:LeanRecordReader
+initialize	mapreduce/VDFSRecordReader.java	/^    public void initialize(InputSplit split_, TaskAttemptContext context) $/;"	m	class:VDFSRecordReader
+inputCounter	mapreduce/LeanRecordReader.java	/^  private Counter inputCounter;$/;"	f	class:LeanRecordReader	file:
+inputCounter	mapreduce/VDFSRecordReader.java	/^    private Counter inputCounter;$/;"	f	class:VDFSRecordReader	file:
+isConnected	mapreduce/LeanRecordReader.java	/^  private Future<Boolean> isConnected;$/;"	f	class:LeanRecordReader	file:
+isNotWikiLink	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/WikiPageLinksMapper.java	/^    private boolean isNotWikiLink(String aLink) {$/;"	m	class:WikiPageLinksMapper	file:
+isNotWikiLink	benchmark/job1/xmlhakker/WikiPageLinksMapper.java	/^    private boolean isNotWikiLink(String aLink) {$/;"	m	class:WikiPageLinksMapper	file:
+job	benchmark/LeanSort.java	/^  private Job job = null;$/;"	f	class:LeanSort	file:
+key	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/XmlInputFormat.java	/^        private LongWritable key = new LongWritable();$/;"	f	class:XmlInputFormat.XmlRecordReader	file:
+key	benchmark/job1/xmlhakker/XmlInputFormat.java	/^        private LongWritable key = new LongWritable();$/;"	f	class:XmlInputFormat.XmlRecordReader	file:
+key	mapreduce/LeanRecordReader.java	/^  private LongWritable key = new LongWritable();$/;"	f	class:LeanRecordReader	file:
+key	mapreduce/VDFSRecordReader.java	/^    private LongWritable key = new LongWritable();$/;"	f	class:VDFSRecordReader	file:
+launchCommand	benchmark/VDFSLauncher.java	/^    private static void launchCommand(String cmd) {$/;"	m	class:VDFSLauncher	file:
+lineBuffer	mapreduce/LeanRecordReader.java	/^  private byte[] lineBuffer;$/;"	f	class:LeanRecordReader	file:
+lineBuffer	mapreduce/VDFSRecordReader.java	/^    private byte[] lineBuffer;$/;"	f	class:VDFSRecordReader	file:
+listStatus	fs/VeloxFileSystem.java	/^  public FileStatus[] listStatus(Path path) throws IOException {$/;"	m	class:VeloxFileSystem
+local	mapreduce/LeanRecordReader.java	/^	public InetAddress local;$/;"	f	class:LeanRecordReader
+localChunks	mapreduce/LeanRecordReader.java	/^  private ArrayList<Chunk> localChunks = new ArrayList<Chunk>();$/;"	f	class:LeanRecordReader	file:
+localNum	mapreduce/LeanRecordReader.java	/^	public int localNum = 0;$/;"	f	class:LeanRecordReader
+localhost	mapreduce/LeanRecordReader.java	/^	public String localhost;$/;"	f	class:LeanRecordReader
+logicalBlockName	mapreduce/LeanInputSplit.java	/^  public String logicalBlockName;$/;"	f	class:LeanInputSplit
+logical_block_name	mapreduce/VDFSInputSplit.java	/^    public String logical_block_name;$/;"	f	class:VDFSInputSplit
+mPos	fs/VeloxFSInputStream.java	/^  private long mPos = 0;$/;"	f	class:VeloxFSInputStream	file:
+mPos	fs/VeloxFSOutputStream.java	/^  private int mPos = 0; \/\/ offset of the file$/;"	f	class:VeloxFSOutputStream	file:
+main	benchmark/AggregateWordCount.java	/^  public static void main(String[] args) $/;"	m	class:AggregateWordCount
+main	benchmark/ExampleDriver.java	/^  public static void main(String argv[]){$/;"	m	class:ExampleDriver
+main	benchmark/Grep.java	/^  public static void main(String[] args) throws Exception {$/;"	m	class:Grep
+main	benchmark/LeanAggregateWordCount.java	/^  public static void main(String[] args) $/;"	m	class:LeanAggregateWordCount
+main	benchmark/LeanGrep.java	/^  public static void main(String[] args) throws Exception {$/;"	m	class:LeanGrep
+main	benchmark/LeanJoin.java	/^  public static void main(String[] args) throws Exception {$/;"	m	class:LeanJoin
+main	benchmark/LeanSort.java	/^  public static void main(String[] args) throws Exception {$/;"	m	class:LeanSort
+main	benchmark/LeanWordCount.java	/^  public static void main(String[] args) throws Exception {$/;"	m	class:LeanWordCount
+main	benchmark/VDFSLauncher.java	/^    public static void main(String[] args) {$/;"	m	class:VDFSLauncher
+main	benchmark/WikiPageRanking.java	/^    public static void main(String[] args) throws Exception {$/;"	m	class:WikiPageRanking
+main	benchmark/WordCount.java	/^  public static void main(String[] args) throws Exception {$/;"	m	class:WordCount
+main	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/WikiPageRanking.java	/^    public static void main(String[] args) throws Exception {$/;"	m	class:WikiPageRanking
+makeVeloxPath	fs/VeloxFileSystem.java	/^  private Path makeVeloxPath(Path path) {$/;"	m	class:VeloxFileSystem	file:
+map	benchmark/LeanWordCount.java	/^    public void map(Object key, Text value, Context context$/;"	m	class:LeanWordCount.TokenizerMapper
+map	benchmark/WordCount.java	/^    public void map(Object key, Text value, Context context$/;"	m	class:WordCount.TokenizerMapper
+map	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/WikiPageLinksMapper.java	/^    public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {$/;"	m	class:WikiPageLinksMapper
+map	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job2/calculate/RankCalculateMapper.java	/^    public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {$/;"	m	class:RankCalculateMapper
+map	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job3/result/RankingMapper.java	/^    public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {$/;"	m	class:RankingMapper
+map	benchmark/job1/xmlhakker/WikiPageLinksMapper.java	/^    public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {$/;"	m	class:WikiPageLinksMapper
+map	benchmark/job2/calculate/RankCalculateMapper.java	/^    public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {$/;"	m	class:RankCalculateMapper
+map	benchmark/job3/result/RankingMapper.java	/^    public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {$/;"	m	class:RankingMapper
+mkdirs	fs/VeloxFileSystem.java	/^  public boolean mkdirs(Path f) throws IOException {$/;"	m	class:VeloxFileSystem
+mkdirs	fs/VeloxFileSystem.java	/^  public boolean mkdirs(Path path, FsPermission perms) throws IOException {$/;"	m	class:VeloxFileSystem
+nextKeyValue	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/XmlInputFormat.java	/^        public boolean nextKeyValue() throws IOException, InterruptedException {$/;"	m	class:XmlInputFormat.XmlRecordReader
+nextKeyValue	benchmark/job1/xmlhakker/XmlInputFormat.java	/^        public boolean nextKeyValue() throws IOException, InterruptedException {$/;"	m	class:XmlInputFormat.XmlRecordReader
+nextKeyValue	mapreduce/LeanRecordReader.java	/^  public boolean nextKeyValue() throws IOException, InterruptedException {$/;"	m	class:LeanRecordReader
+nextKeyValue	mapreduce/VDFSRecordReader.java	/^    public boolean nextKeyValue() throws IOException, InterruptedException {$/;"	m	class:VDFSRecordReader
+nextOverheadCounter	mapreduce/LeanRecordReader.java	/^  private Counter nextOverheadCounter;$/;"	f	class:LeanRecordReader	file:
+nextTime	mapreduce/LeanRecordReader.java	/^  private long nextTime = 0;$/;"	f	class:LeanRecordReader	file:
+nf	benchmark/WikiPageRanking.java	/^    private static NumberFormat nf = new DecimalFormat("00");$/;"	f	class:WikiPageRanking	file:
+nf	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/WikiPageRanking.java	/^    private static NumberFormat nf = new DecimalFormat("00");$/;"	f	class:WikiPageRanking	file:
+notValidPage	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/WikiPageLinksMapper.java	/^    private boolean notValidPage(String pageString) {$/;"	m	class:WikiPageLinksMapper	file:
+notValidPage	benchmark/job1/xmlhakker/WikiPageLinksMapper.java	/^    private boolean notValidPage(String pageString) {$/;"	m	class:WikiPageLinksMapper	file:
+numStaticChunks	mapreduce/LeanRecordReader.java	/^  private int numStaticChunks;$/;"	f	class:LeanRecordReader	file:
+offset	mapreduce/Chunk.java	/^	public long offset;$/;"	f	class:Chunk
+one	benchmark/LeanWordCount.java	/^    private final static IntWritable one = new IntWritable(1);$/;"	f	class:LeanWordCount.TokenizerMapper	file:
+one	benchmark/WordCount.java	/^    private final static IntWritable one = new IntWritable(1);$/;"	f	class:WordCount.TokenizerMapper	file:
+open	fs/VeloxFileSystem.java	/^  public FSDataInputStream open(Path f) throws IOException {$/;"	m	class:VeloxFileSystem
+open	fs/VeloxFileSystem.java	/^  public FSDataInputStream open(Path f, int bufferSize) throws IOException {$/;"	m	class:VeloxFileSystem
+org.dicl.velox.benchmark	benchmark/AggregateWordCount.java	/^package org.dicl.velox.benchmark;$/;"	p
+org.dicl.velox.benchmark	benchmark/ExampleDriver.java	/^package org.dicl.velox.benchmark;$/;"	p
+org.dicl.velox.benchmark	benchmark/Grep.java	/^package org.dicl.velox.benchmark;$/;"	p
+org.dicl.velox.benchmark	benchmark/LeanAggregateWordCount.java	/^package org.dicl.velox.benchmark;$/;"	p
+org.dicl.velox.benchmark	benchmark/LeanGrep.java	/^package org.dicl.velox.benchmark;$/;"	p
+org.dicl.velox.benchmark	benchmark/LeanJoin.java	/^package org.dicl.velox.benchmark;$/;"	p
+org.dicl.velox.benchmark	benchmark/LeanSort.java	/^package org.dicl.velox.benchmark;$/;"	p
+org.dicl.velox.benchmark	benchmark/LeanWordCount.java	/^package org.dicl.velox.benchmark;$/;"	p
+org.dicl.velox.benchmark	benchmark/VDFSLauncher.java	/^package org.dicl.velox.benchmark;$/;"	p
+org.dicl.velox.benchmark	benchmark/WordCount.java	/^package org.dicl.velox.benchmark;$/;"	p
+org.dicl.velox.fs	fs/VeloxFSInputStream.java	/^package org.dicl.velox.fs;$/;"	p
+org.dicl.velox.fs	fs/VeloxFSOutputStream.java	/^package org.dicl.velox.fs;$/;"	p
+org.dicl.velox.fs	fs/VeloxFileSystem.java	/^package org.dicl.velox.fs;$/;"	p
+org.dicl.velox.fs	fs/VeloxFs.java	/^package org.dicl.velox.fs;$/;"	p
+org.dicl.velox.mapreduce	mapreduce/Chunk.java	/^package org.dicl.velox.mapreduce;$/;"	p
+org.dicl.velox.mapreduce	mapreduce/LeanInputFormat.java	/^package org.dicl.velox.mapreduce;$/;"	p
+org.dicl.velox.mapreduce	mapreduce/LeanInputSplit.java	/^package org.dicl.velox.mapreduce;$/;"	p
+org.dicl.velox.mapreduce	mapreduce/LeanRecordReader.java	/^package org.dicl.velox.mapreduce;$/;"	p
+org.dicl.velox.mapreduce	mapreduce/LeanSession.java	/^package org.dicl.velox.mapreduce;$/;"	p
+org.dicl.velox.mapreduce	mapreduce/VDFSInputFormat.java	/^package org.dicl.velox.mapreduce;$/;"	p
+org.dicl.velox.mapreduce	mapreduce/VDFSInputSplit.java	/^package org.dicl.velox.mapreduce;$/;"	p
+org.dicl.velox.mapreduce	mapreduce/VDFSRecordReader.java	/^package org.dicl.velox.mapreduce;$/;"	p
+overheadCounter	mapreduce/LeanRecordReader.java	/^  private Counter overheadCounter;$/;"	f	class:LeanRecordReader	file:
+parseTitleAndText	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/WikiPageLinksMapper.java	/^    private String[] parseTitleAndText(Text value) throws CharacterCodingException {$/;"	m	class:WikiPageLinksMapper	file:
+parseTitleAndText	benchmark/job1/xmlhakker/WikiPageLinksMapper.java	/^    private String[] parseTitleAndText(Text value) throws CharacterCodingException {$/;"	m	class:WikiPageLinksMapper	file:
+pos	mapreduce/LeanRecordReader.java	/^  private long pos = 0;$/;"	f	class:LeanRecordReader	file:
+pos	mapreduce/VDFSRecordReader.java	/^    private long pos = 0;$/;"	f	class:VDFSRecordReader	file:
+prepareHeader	benchmark/VDFSLauncher.java	/^    private static String prepareHeader(String className, String inputFile, String args) {$/;"	m	class:VDFSLauncher	file:
+printUsage	benchmark/LeanJoin.java	/^  static int printUsage() {$/;"	m	class:LeanJoin
+printUsage	benchmark/LeanSort.java	/^  static int printUsage() {$/;"	m	class:LeanSort
+process	mapreduce/LeanRecordReader.java	/^    public void process(WatchedEvent event)  { $/;"	m	class:LeanRecordReader.ZKconnectCallable
+processedChunks	mapreduce/LeanRecordReader.java	/^  private long processedChunks = 0;$/;"	f	class:LeanRecordReader	file:
+read	fs/VeloxFSInputStream.java	/^  public int read() throws IOException {$/;"	m	class:VeloxFSInputStream
+read	fs/VeloxFSInputStream.java	/^  public synchronized int read(long pos, byte[] buf, int off, int len)$/;"	m	class:VeloxFSInputStream
+read	mapreduce/LeanRecordReader.java	/^  private byte read() {$/;"	m	class:LeanRecordReader	file:
+read	mapreduce/LeanRecordReader.java	/^  public int read(long pos, byte[] buf, int off, int len) {$/;"	m	class:LeanRecordReader
+read	mapreduce/VDFSRecordReader.java	/^    private byte read() {$/;"	m	class:VDFSRecordReader	file:
+read	mapreduce/VDFSRecordReader.java	/^    public int read(long pos, byte[] buf, int off, int len) {$/;"	m	class:VDFSRecordReader
+readFields	mapreduce/Chunk.java	/^  public void readFields(DataInput in) throws IOException {$/;"	m	class:Chunk
+readFields	mapreduce/LeanInputSplit.java	/^  public void readFields(DataInput in) throws IOException {$/;"	m	class:LeanInputSplit
+readFields	mapreduce/VDFSInputSplit.java	/^    public void readFields(DataInput in) throws IOException {$/;"	m	class:VDFSInputSplit
+readUntilMatch	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/XmlInputFormat.java	/^        private boolean readUntilMatch(byte[] match, boolean withinBlock) throws IOException {$/;"	m	class:XmlInputFormat.XmlRecordReader	file:
+readUntilMatch	benchmark/job1/xmlhakker/XmlInputFormat.java	/^        private boolean readUntilMatch(byte[] match, boolean withinBlock) throws IOException {$/;"	m	class:XmlInputFormat.XmlRecordReader	file:
+readingCounter	mapreduce/LeanRecordReader.java	/^  private Counter readingCounter;$/;"	f	class:LeanRecordReader	file:
+readingTime	mapreduce/LeanRecordReader.java	/^  private long readingTime = 0;$/;"	f	class:LeanRecordReader	file:
+reduce	benchmark/LeanWordCount.java	/^    public void reduce(Text key, Iterable<IntWritable> values, $/;"	m	class:LeanWordCount.IntSumReducer
+reduce	benchmark/WordCount.java	/^    public void reduce(Text key, Iterable<IntWritable> values, $/;"	m	class:WordCount.IntSumReducer
+reduce	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/WikiLinksReducer.java	/^    public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {$/;"	m	class:WikiLinksReducer
+reduce	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job2/calculate/RankCalculateReduce.java	/^    public void reduce(Text page, Iterable<Text> values, Context context) throws IOException, InterruptedException {$/;"	m	class:RankCalculateReduce
+reduce	benchmark/job1/xmlhakker/WikiLinksReducer.java	/^    public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {$/;"	m	class:WikiLinksReducer
+reduce	benchmark/job2/calculate/RankCalculateReduce.java	/^    public void reduce(Text page, Iterable<Text> values, Context context) throws IOException, InterruptedException {$/;"	m	class:RankCalculateReduce
+remainingBytes	mapreduce/LeanRecordReader.java	/^  private int remainingBytes = 0;$/;"	f	class:LeanRecordReader	file:
+remaining_bytes	fs/VeloxFSInputStream.java	/^  private long remaining_bytes= 0;$/;"	f	class:VeloxFSInputStream	file:
+remaining_bytes	mapreduce/VDFSRecordReader.java	/^    private int remaining_bytes = 0;$/;"	f	class:VDFSRecordReader	file:
+rename	fs/VeloxFileSystem.java	/^  public boolean rename(Path src, Path dst) throws IOException {$/;"	m	class:VeloxFileSystem
+result	benchmark/LeanWordCount.java	/^    private IntWritable result = new IntWritable();$/;"	f	class:LeanWordCount.IntSumReducer	file:
+result	benchmark/WordCount.java	/^    private IntWritable result = new IntWritable();$/;"	f	class:WordCount.IntSumReducer	file:
+run	benchmark/Grep.java	/^  public int run(String[] args) throws Exception {$/;"	m	class:Grep
+run	benchmark/LeanGrep.java	/^  public int run(String[] args) throws Exception {$/;"	m	class:LeanGrep
+run	benchmark/LeanJoin.java	/^  public int run(String[] args) throws Exception {$/;"	m	class:LeanJoin
+run	benchmark/LeanSort.java	/^  public int run(String[] args) throws Exception {$/;"	m	class:LeanSort
+run	benchmark/WikiPageRanking.java	/^    public int run(String[] args) throws Exception {$/;"	m	class:WikiPageRanking
+run	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/WikiPageRanking.java	/^    public int run(String[] args) throws Exception {$/;"	m	class:WikiPageRanking
+runRankCalculation	benchmark/WikiPageRanking.java	/^    private boolean runRankCalculation(String inputPath, String outputPath) throws IOException, ClassNotFoundException, InterruptedException {$/;"	m	class:WikiPageRanking	file:
+runRankCalculation	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/WikiPageRanking.java	/^    private boolean runRankCalculation(String inputPath, String outputPath) throws IOException, ClassNotFoundException, InterruptedException {$/;"	m	class:WikiPageRanking	file:
+runRankOrdering	benchmark/WikiPageRanking.java	/^    private boolean runRankOrdering(String inputPath, String outputPath) throws IOException, ClassNotFoundException, InterruptedException {$/;"	m	class:WikiPageRanking	file:
+runRankOrdering	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/WikiPageRanking.java	/^    private boolean runRankOrdering(String inputPath, String outputPath) throws IOException, ClassNotFoundException, InterruptedException {$/;"	m	class:WikiPageRanking	file:
+runXmlParsing	benchmark/WikiPageRanking.java	/^    public boolean runXmlParsing(String inputPath, String outputPath) throws IOException, ClassNotFoundException, InterruptedException {$/;"	m	class:WikiPageRanking
+runXmlParsing	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/WikiPageRanking.java	/^    public boolean runXmlParsing(String inputPath, String outputPath) throws IOException, ClassNotFoundException, InterruptedException {$/;"	m	class:WikiPageRanking
+seek	fs/VeloxFSInputStream.java	/^  public synchronized void seek(long targetPos) throws IOException {$/;"	m	class:VeloxFSInputStream
+seekToNewSource	fs/VeloxFSInputStream.java	/^  public synchronized boolean seekToNewSource(long targetPos) {$/;"	m	class:VeloxFSInputStream
+setBuffer	fs/VeloxFSOutputStream.java	/^  public void setBuffer(int bufferSize) {$/;"	m	class:VeloxFSOutputStream
+setFd	fs/VeloxFSInputStream.java	/^  public void setFd(long _fd) { fd = _fd; }$/;"	m	class:VeloxFSInputStream
+setFd	fs/VeloxFSOutputStream.java	/^  public void setFd(long _fd) { fd = _fd; }$/;"	m	class:VeloxFSOutputStream
+setFileSize	fs/VeloxFSInputStream.java	/^  public void setFileSize(long fs) { fileSize = fs; }$/;"	m	class:VeloxFSInputStream
+setOwner	fs/VeloxFileSystem.java	/^  public void setOwner(Path path, String username, String groupname) throws IOException {$/;"	m	class:VeloxFileSystem
+setPermission	fs/VeloxFileSystem.java	/^  public void setPermission(Path path, FsPermission permission) throws IOException {$/;"	m	class:VeloxFileSystem
+setTimes	fs/VeloxFileSystem.java	/^  public void setTimes(Path path, long mtime, long atime) throws IOException {$/;"	m	class:VeloxFileSystem
+setVeloxDFS	fs/VeloxFSInputStream.java	/^  public void setVeloxDFS(VeloxDFS _vdfs) { vdfs = _vdfs; }$/;"	m	class:VeloxFSInputStream
+setVeloxDFS	fs/VeloxFSOutputStream.java	/^  public void setVeloxDFS(VeloxDFS _vdfs) { vdfs = _vdfs; }$/;"	m	class:VeloxFSOutputStream
+setWorkingDirectory	fs/VeloxFileSystem.java	/^  public void setWorkingDirectory(Path dir) {$/;"	m	class:VeloxFileSystem
+setupZk	mapreduce/LeanSession.java	/^  public void setupZk() {$/;"	m	class:LeanSession
+size	mapreduce/Chunk.java	/^  public long size;$/;"	f	class:Chunk
+size	mapreduce/LeanInputSplit.java	/^  public long size;$/;"	f	class:LeanInputSplit
+size	mapreduce/LeanRecordReader.java	/^  private long size = 0;$/;"	f	class:LeanRecordReader	file:
+size	mapreduce/VDFSInputSplit.java	/^    public long size;$/;"	f	class:VDFSInputSplit
+size	mapreduce/VDFSRecordReader.java	/^    private long size = 0;$/;"	f	class:VDFSRecordReader	file:
+split	mapreduce/LeanRecordReader.java	/^  private LeanInputSplit split;$/;"	f	class:LeanRecordReader	file:
+split	mapreduce/VDFSRecordReader.java	/^    private VDFSInputSplit split;$/;"	f	class:VDFSRecordReader	file:
+start	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/XmlInputFormat.java	/^        private final long start;$/;"	f	class:XmlInputFormat.XmlRecordReader	file:
+start	benchmark/job1/xmlhakker/XmlInputFormat.java	/^        private final long start;$/;"	f	class:XmlInputFormat.XmlRecordReader	file:
+startConnect	mapreduce/LeanRecordReader.java	/^  private long startConnect = 0;$/;"	f	class:LeanRecordReader	file:
+startOverheadCounter	mapreduce/LeanRecordReader.java	/^  private Counter startOverheadCounter;$/;"	f	class:LeanRecordReader	file:
+startTag	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/XmlInputFormat.java	/^        private final byte[] startTag;$/;"	f	class:XmlInputFormat.XmlRecordReader	file:
+startTag	benchmark/job1/xmlhakker/XmlInputFormat.java	/^        private final byte[] startTag;$/;"	f	class:XmlInputFormat.XmlRecordReader	file:
+sweetify	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/WikiPageLinksMapper.java	/^    private String sweetify(String aLinkText) {$/;"	m	class:WikiPageLinksMapper	file:
+sweetify	benchmark/job1/xmlhakker/WikiPageLinksMapper.java	/^    private String sweetify(String aLinkText) {$/;"	m	class:WikiPageLinksMapper	file:
+total_read_bytes	fs/VeloxFSInputStream.java	/^  private long total_read_bytes= 0;$/;"	f	class:VeloxFSInputStream	file:
+ugi	fs/VeloxFileSystem.java	/^  private UserGroupInformation ugi;$/;"	f	class:VeloxFileSystem	file:
+value	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/XmlInputFormat.java	/^        private Text value = new Text();$/;"	f	class:XmlInputFormat.XmlRecordReader	file:
+value	benchmark/job1/xmlhakker/XmlInputFormat.java	/^        private Text value = new Text();$/;"	f	class:XmlInputFormat.XmlRecordReader	file:
+value	mapreduce/LeanRecordReader.java	/^  private Text value = new Text();$/;"	f	class:LeanRecordReader	file:
+value	mapreduce/VDFSRecordReader.java	/^    private Text value = new Text();$/;"	f	class:VDFSRecordReader	file:
+vdfs	fs/VeloxFSInputStream.java	/^  private VeloxDFS vdfs = null;$/;"	f	class:VeloxFSInputStream	file:
+vdfs	fs/VeloxFSOutputStream.java	/^  private VeloxDFS vdfs;$/;"	f	class:VeloxFSOutputStream	file:
+vdfs	mapreduce/LeanRecordReader.java	/^  private VeloxDFS vdfs = null;$/;"	f	class:LeanRecordReader	file:
+vdfs	mapreduce/VDFSInputFormat.java	/^  private VeloxDFS vdfs = null;$/;"	f	class:VDFSInputFormat	file:
+vdfs	mapreduce/VDFSRecordReader.java	/^    private VeloxDFS vdfs = null;$/;"	f	class:VDFSRecordReader	file:
+veloxConf	fs/VeloxFileSystem.java	/^  private com.dicl.velox.Configuration veloxConf;$/;"	f	class:VeloxFileSystem	file:
+veloxdfs	fs/VeloxFileSystem.java	/^  private VeloxDFS veloxdfs;$/;"	f	class:VeloxFileSystem	file:
+wikiLinksPattern	benchmark/hadoop-wiki-pageranking/src/com/xebia/sandbox/hadoop/job1/xmlhakker/WikiPageLinksMapper.java	/^    private static final Pattern wikiLinksPattern = Pattern.compile("\\\\[.+?\\\\]");$/;"	f	class:WikiPageLinksMapper	file:
+wikiLinksPattern	benchmark/job1/xmlhakker/WikiPageLinksMapper.java	/^    private static final Pattern wikiLinksPattern = Pattern.compile("\\\\[.+?\\\\]");$/;"	f	class:WikiPageLinksMapper	file:
+word	benchmark/LeanWordCount.java	/^    private Text word = new Text();$/;"	f	class:LeanWordCount.TokenizerMapper	file:
+word	benchmark/WordCount.java	/^    private Text word = new Text();$/;"	f	class:WordCount.TokenizerMapper	file:
+workingDir	fs/VeloxFileSystem.java	/^  private Path workingDir;$/;"	f	class:VeloxFileSystem	file:
+write	fs/VeloxFSOutputStream.java	/^  public synchronized void write(byte buf[], int off, int len) throws IOException {$/;"	m	class:VeloxFSOutputStream
+write	fs/VeloxFSOutputStream.java	/^  public synchronized void write(int b) throws IOException {$/;"	m	class:VeloxFSOutputStream
+write	mapreduce/Chunk.java	/^  public void write(DataOutput out) throws IOException {$/;"	m	class:Chunk
+write	mapreduce/LeanInputSplit.java	/^  public void write(DataOutput out) throws IOException {$/;"	m	class:LeanInputSplit
+write	mapreduce/VDFSInputSplit.java	/^    public void write(DataOutput out) throws IOException {$/;"	m	class:VDFSInputSplit
+zk	mapreduce/LeanRecordReader.java	/^  private ZooKeeper zk;$/;"	f	class:LeanRecordReader	file:
+zk	mapreduce/LeanSession.java	/^  private ZooKeeper zk;$/;"	f	class:LeanSession	file:
+zkPrefix	mapreduce/LeanRecordReader.java	/^  private String zkPrefix;$/;"	f	class:LeanRecordReader	file:
+zookeeperTime	mapreduce/LeanRecordReader.java	/^  private long zookeeperTime = 0;$/;"	f	class:LeanRecordReader	file:

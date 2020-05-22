@@ -54,6 +54,9 @@ public class ExampleDriver {
       pgd.addClass("leanjoin", LeanJoin.class, 
                    "A map/reduce program that counts the words in the input files.");
 
+      pgd.addClass("pagerank", PageRank.class, 
+                   "A map/reduce program that counts the words in the input files.");
+
       exitCode = pgd.run(argv);
     }
     catch(Throwable e){

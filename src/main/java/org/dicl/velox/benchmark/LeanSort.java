@@ -45,172 +45,135 @@ import org.apache.hadoop.util.ToolRunner;
 import org.dicl.velox.mapreduce.LeanInputFormat;
 import org.dicl.velox.mapreduce.LeanSession;
 
-/**
- * This is the trivial map/reduce program that does absolutely nothing
- * other than use the framework to fragment and sort the input values.
- *
- * To run: bin/hadoop jar build/hadoop-examples.jar sort
- *            [-r <i>reduces</i>]
- *            [-inFormat <i>input format class</i>] 
- *            [-outFormat <i>output format class</i>] 
- *            [-outKey <i>output key class</i>] 
- *            [-outValue <i>output value class</i>] 
- *            [-totalOrder <i>pcnt</i> <i>num samples</i> <i>max splits</i>]
- *            <i>in-dir</i> <i>out-dir</i> 
- */
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Partitioner;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import java.io.*;
+
+
 public class LeanSort<K,V> extends Configured implements Tool {
-  public static final String REDUCES_PER_HOST = 
-    "mapreduce.sort.reducesperhost";
-  private Job job = null;
-
-  static int printUsage() {
-    System.out.println("sort [-r <reduces>] " +
-                       "[-inFormat <input format class>] " +
-                       "[-outFormat <output format class>] " + 
-                       "[-outKey <output key class>] " +
-                       "[-outValue <output value class>] " +
-                       "[-totalOrder <pcnt> <num samples> <max splits>] " +
-                       "<input> <output>");
-    ToolRunner.printGenericCommandUsage(System.out);
-    return 2;
-  }
-
-  /**
-   * The main driver for sort program.
-   * Invoke this method to submit the map/reduce job.
-   * @throws IOException When there is communication problems with the 
-   *                     job tracker.
-   */
-  public int run(String[] args) throws Exception {
-
-    Configuration conf = getConf();
-    JobClient client = new JobClient(conf);
-    ClusterStatus cluster = client.getClusterStatus();
-    int num_reduces = (int) (cluster.getMaxReduceTasks() * 0.9);
-    String sort_reduces = conf.get(REDUCES_PER_HOST);
-    if (sort_reduces != null) {
-       num_reduces = cluster.getTaskTrackers() * 
-                       Integer.parseInt(sort_reduces);
-    }
-    Class<? extends InputFormat> inputFormatClass = 
-      SequenceFileInputFormat.class;
-    Class<? extends OutputFormat> outputFormatClass = 
-      SequenceFileOutputFormat.class;
-    Class<? extends WritableComparable> outputKeyClass = LongWritable.class;
-    Class<? extends Writable> outputValueClass = Text.class;
-    List<String> otherArgs = new ArrayList<String>();
-    InputSampler.Sampler<K,V> sampler = null;
-    for(int i=0; i < args.length; ++i) {
-      try {
-        if ("-r".equals(args[i])) {
-          num_reduces = Integer.parseInt(args[++i]);
-        } else if ("-inFormat".equals(args[i])) {
-          inputFormatClass = 
-            Class.forName(args[++i]).asSubclass(InputFormat.class);
-        } else if ("-outFormat".equals(args[i])) {
-          outputFormatClass = 
-            Class.forName(args[++i]).asSubclass(OutputFormat.class);
-        } else if ("-outKey".equals(args[i])) {
-          outputKeyClass = 
-            Class.forName(args[++i]).asSubclass(WritableComparable.class);
-        } else if ("-outValue".equals(args[i])) {
-          outputValueClass = 
-            Class.forName(args[++i]).asSubclass(Writable.class);
-        } else if ("-totalOrder".equals(args[i])) {
-          double pcnt = Double.parseDouble(args[++i]);
-          int numSamples = Integer.parseInt(args[++i]);
-          int maxSplits = Integer.parseInt(args[++i]);
-          if (0 >= maxSplits) maxSplits = Integer.MAX_VALUE;
-          sampler =
-            new InputSampler.RandomSampler<K,V>(pcnt, numSamples, maxSplits);
-        } else {
-          otherArgs.add(args[i]);
-        }
-      } catch (NumberFormatException except) {
-        System.out.println("ERROR: Integer expected instead of " + args[i]);
-        return printUsage();
-      } catch (ArrayIndexOutOfBoundsException except) {
-        System.out.println("ERROR: Required parameter missing from " +
-            args[i-1]);
-        return printUsage(); // exits
-      }
-    }
-    // Set user-supplied (possibly default) job configs
+	private static final Log LOG = LogFactory.getLog(LeanSort.class);
+	public static final String REDUCES_PER_HOST = 
+		"mapreduce.sort.reducesperhost";
+	private Job job = null;
+	/*
+	static int printUsage() {
+		System.out.println("leansort [-r <reduces>] " +
+				"[-inFormat <input format class>] " +
+				"[-outFormat <output format class>] " + 
+				"[-outKey <output key class>] " +
+				"[-outValue <output value class>] " +
+				"[-totalOrder <pcnt> <num samples> <max splits>] " +
+				"<input> <output>");
+		ToolRunner.printGenericCommandUsage(System.out);
+		return 2;
+	}*/
 
 
-    job = Job.getInstance(conf);
+	public static class Map extends Mapper<LongWritable, Text, IntWritable, IntWritable> {
+		private static IntWritable data = new IntWritable();
 
+		protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+			//if(key.get() != 0) {
+				String line = value.toString();
+				if(line.equals("")) return;
+				data.set(Integer.parseInt(line));
+				//LOG.info("data = " + data.toString());
+				context.write(data, new IntWritable(1));
+			//}
+		}
+	}
 
-    job.setJobName("sorter");
-    job.setJarByClass(LeanSort.class);
+	public static class Reduce extends Reducer<IntWritable, IntWritable, IntWritable, IntWritable> {
+		private static IntWritable linenum = new IntWritable(1);
 
-    job.setMapperClass(Mapper.class);        
-    job.setReducerClass(Reducer.class);
+		protected void reduce(IntWritable key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
+			for (IntWritable val : values) {
+				context.write(linenum, key);
+			}	
+			linenum = new IntWritable(linenum.get() + 1);
+		}
+	}
 
-    job.setNumReduceTasks(num_reduces);
+	public static class Patition extends Partitioner<IntWritable, IntWritable>{
+		public int getPartition(IntWritable key, IntWritable value, int numPartitions) {
+			int maxNum = 10000;
+			int bound = maxNum / numPartitions + 1;
+			int keynum = key.get();
+			for(int i=0; i< numPartitions;i++){
+				if(keynum< bound * i && keynum >= bound * (i-1)) {
+					return i-1;
+				}
+			}
+			return -1;
+		}
+	}
 
-    //job.setInputFormatClass(inputFormatClass);
-    job.setInputFormatClass(LeanInputFormat.class);
-    job.setOutputFormatClass(outputFormatClass);
+	/**
+	 * The main driver for sort program.
+	 * Invoke this method to submit the map/reduce job.
+	 * @throws IOException When there is communication problems with the 
+	 *                     job tracker.
+	 */
+	public int run(String[] args) throws Exception {
 
-    job.setOutputKeyClass(outputKeyClass);
-    job.setOutputValueClass(outputValueClass);
+		for(int i=0; i<args.length; i++) {
+			LOG.info("args[" + String.valueOf(i) + "] = " + args[i]);
+		}
+		Configuration conf = getConf();
 
-    // Make sure there are exactly 2 parameters left.
-    if (otherArgs.size() != 2) {
-      System.out.println("ERROR: Wrong number of parameters: " +
-          otherArgs.size() + " instead of 2.");
-      return printUsage();
-    }
-    FileInputFormat.setInputPaths(job, otherArgs.get(0));
-    FileOutputFormat.setOutputPath(job, new Path(otherArgs.get(1)));
-    
-    if (sampler != null) {
-      System.out.println("Sampling input to effect total-order sort...");
-      job.setPartitionerClass(TotalOrderPartitioner.class);
-      Path inputDir = FileInputFormat.getInputPaths(job)[0];
-      inputDir = inputDir.makeQualified(inputDir.getFileSystem(conf));
-      Path partitionFile = new Path(inputDir, "_sortPartitioning");
-      TotalOrderPartitioner.setPartitionFile(conf, partitionFile);
-      InputSampler.<K,V>writePartitionFile(job, sampler);
-      URI partitionUri = new URI(partitionFile.toString() +
-                                 "#" + "_sortPartitioning");
-      DistributedCache.addCacheFile(partitionUri, conf);
-    }
+		Job job = new Job(conf, "sort");
+		job.setJarByClass(LeanSort.class);
+		job.setNumReduceTasks(160);
 
-    System.out.println("Running on " +
-        cluster.getTaskTrackers() +
-        " nodes to sort from " + 
-        FileInputFormat.getInputPaths(job)[0] + " into " +
-        FileOutputFormat.getOutputPath(job) +
-        " with " + num_reduces + " reduces.");
-    Date startTime = new Date();
-    System.out.println("Job started: " + startTime);
-    int ret = job.waitForCompletion(true) ? 0 : 1;
-    Date end_time = new Date();
-    System.out.println("Job ended: " + end_time);
-    System.out.println("The job took " + 
-        (end_time.getTime() - startTime.getTime()) /1000 + " seconds.");
+		job.setOutputKeyClass(IntWritable.class);
+		job.setOutputValueClass(IntWritable.class);
 
-    String zkAddress   = conf.get("velox.recordreader.zk-addr", "192.168.0.101:2181");
-    LeanSession session = new LeanSession(zkAddress, job.getStatus().getJobID().toString(), 500000);
-    session.deleteChunks();
-    session.close();
-    return ret;
-  }
+		job.setMapperClass(Map.class);
+		job.setCombinerClass(Reduce.class);
+		job.setReducerClass(Reduce.class);
+
+		//job.setPartitionerClass(Patition.class);
+		job.setInputFormatClass(LeanInputFormat.class);
+		job.setOutputFormatClass(TextOutputFormat.class);
+
+		FileInputFormat.addInputPath(job, new Path(args[0]));
+		FileOutputFormat.setOutputPath(job, new Path(args[1]));
+
+		job.waitForCompletion(true);
+		String zkAddress   = conf.get("velox.recordreader.zk-addr", "172.20.1.80:2381");
+		LeanSession session = new LeanSession(zkAddress, job.getStatus().getJobID().toString(), 500000);
+		session.deleteChunks();
+		session.close();
+
+		return 0;
+
+	}
 
 
 
-  public static void main(String[] args) throws Exception {
-    int res = ToolRunner.run(new Configuration(), new LeanSort(), args);
-    System.exit(res);
-  }
+	public static void main(String[] args) throws Exception {
+		int res = ToolRunner.run(new Configuration(), new LeanSort(), args);
+		System.exit(res);
+	}
 
-  /**
-   * Get the last job that was run using this instance.
-   * @return the results of the last job that was run
-   */
-  public Job getResult() {
-    return job;
-  }
+	/**
+	 * Get the last job that was run using this instance.
+	 * @return the results of the last job that was run
+	 */
+	public Job getResult() {
+		return job;
+	}
 }

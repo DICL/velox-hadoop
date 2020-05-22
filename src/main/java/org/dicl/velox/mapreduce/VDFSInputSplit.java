@@ -15,22 +15,25 @@ import java.lang.Object;
 public class VDFSInputSplit extends InputSplit implements Writable {
     public ArrayList<Chunk> chunks;
     public String logical_block_name;
+    public String jobID;
     public String host;
     public long size;
+	public long taskID;
 
     public VDFSInputSplit() {
         chunks = new ArrayList<Chunk>();
     }
 
-    public VDFSInputSplit(String name, String host, long size) {
+    public VDFSInputSplit(String name, String jobID, int taskID) {
         chunks = new ArrayList<Chunk>();
         this.logical_block_name = name;
-        this.host = host;
-        this.size = size;
+        this.jobID = jobID;
+		this.taskID = taskID;
     }
 
-    public void addChunk(String fname, long size, long seq) {
-        chunks.add(new Chunk(fname, size, seq));
+    //public void addChunk(String fname, long size, long seq, long offset, String host) {
+    public void addChunk() {
+        chunks.add(new Chunk());
     }
 
     @Override
@@ -49,8 +52,9 @@ public class VDFSInputSplit extends InputSplit implements Writable {
     @Override
     public void readFields(DataInput in) throws IOException {
         logical_block_name = Text.readString(in);
+        jobID = Text.readString(in);
         host = Text.readString(in);
-        size = in.readLong();
+        taskID = in.readLong();
         ArrayWritable in_chunks = new ArrayWritable(Chunk.class);
         in_chunks.readFields(in);
         chunks = new ArrayList<Chunk>(Arrays.asList((Chunk[])in_chunks.toArray()));
@@ -59,8 +63,9 @@ public class VDFSInputSplit extends InputSplit implements Writable {
     @Override
     public void write(DataOutput out) throws IOException {
         Text.writeString(out, logical_block_name);
+        Text.writeString(out, jobID);
         Text.writeString(out, host);
-        out.writeLong(size);
+        out.writeLong(taskID);
         ArrayWritable in_chunks = new ArrayWritable(Chunk.class,
                 chunks.toArray(new Chunk[chunks.size()]));
         in_chunks.write(out);

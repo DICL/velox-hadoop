@@ -35,8 +35,8 @@ public class VDFSRecordReader extends RecordReader<LongWritable, Text> {
     private Text value = new Text();
     private VDFSInputSplit split;
     private Counter inputCounter;
-
-    public VDFSRecordReader() { }
+    public VDFSRecordReader() { 
+	}
 
     /**
      * Called once at initialization.
@@ -51,7 +51,7 @@ public class VDFSRecordReader extends RecordReader<LongWritable, Text> {
         split = (VDFSInputSplit) split_;
         size = split.size;
 
-        vdfs = new VeloxDFS();
+        vdfs = new VeloxDFS(split.jobID, split.taskID, false);
         Configuration conf = context.getConfiguration();
 
         int bufferSize =     conf.getInt("velox.recordreader.buffersize", DEFAULT_BUFFER_SIZE);
@@ -61,7 +61,7 @@ public class VDFSRecordReader extends RecordReader<LongWritable, Text> {
         lineBuffer = new byte[lineBufferSize];
 
         inputCounter = context.getCounter("VDFS COUNTERS", VDFSInputFormat.Counter.BYTES_READ.name());
-        LOG.info("Initialized RecordReader for: " + split.logical_block_name + " size: " + split.size + " NumChunks: " + split.chunks.size() + " Host " + split.host);
+        LOG.info("Initialized RecordReader for: " + split.logical_block_name);
     }
 
     /**
@@ -131,24 +131,10 @@ public class VDFSRecordReader extends RecordReader<LongWritable, Text> {
      */
     public int read(long pos, byte[] buf, int off, int len) {
         int i = 0; long total_size = 0;
-        for (Chunk chunk : split.chunks) {
-            if (chunk.size + total_size > pos) {
-               break;
-            }
-            total_size += chunk.size;
-            i++;
-        }
 
-        if (i == split.chunks.size()) {
-            return -1;
-        }
-
-        Chunk the_chunk = split.chunks.get(i);
-        long chunk_offset = pos - total_size;
-
-        int len_to_read = (int)Math.min(len, the_chunk.size - chunk_offset);
-
-        long readBytes = vdfs.readChunk(the_chunk.fileName, split.host, buf, off, chunk_offset, len_to_read);
+        long readBytes = vdfs.readChunk(buf, off);
+		if(readBytes == 0)
+			return -1;
 
         return (int)readBytes;
     }

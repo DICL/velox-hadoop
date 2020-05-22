@@ -19,9 +19,24 @@ import org.apache.hadoop.mapreduce.Counter;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooDefs.Ids;
+import org.apache.zookeeper.ZooKeeper;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
-public class LeanRecordReader extends RecordReader<LongWritable, Text> {
-	private static final Log LOG = LogFactory.getLog(LeanRecordReader.class);
+//zzunny
+import java.net.*;
+import org.apache.hadoop.util.LineReader;
+
+
+public class LeanRecordReader_fixing extends RecordReader<LongWritable, Text> {
+	private static final Log LOG = LogFactory.getLog(LeanRecordReader_fixing.class);
 
 	// Constants
 	private static final int DEFAULT_BUFFER_SIZE = 2 << 20; // 2 MiB
@@ -42,6 +57,7 @@ public class LeanRecordReader extends RecordReader<LongWritable, Text> {
 	private long size = 0;
 	private long processedChunks = 0;
 	private int bufferOffset = 0;
+	private int remainingBytes = 0;
 	private byte[] buffer;
 
 	// Profiling stuff
@@ -52,18 +68,14 @@ public class LeanRecordReader extends RecordReader<LongWritable, Text> {
 	private boolean first = true;
 	private byte[] lineBuffer;
 	private int processed = 0;
-	private int start = 0;
-	private int curpos = 0;
-	private int lentoread = 0;
-	private long totalread = 0;
-	private int readBytes = 0;
-	private int remainingBytes = 0;
+	private InputStream is = null;
+	private BufferedReader bfReader = null;
 
-	// For Multi Waves
-	private int maxProcessBlock = 0;
-	private int processBlock = 0;
 
-	public LeanRecordReader() throws IOException {
+	// zzunny
+	private LineReader in;
+
+	public LeanRecordReader_fixing() throws IOException {
 	}
 
 	public void initialize(InputSplit split, TaskAttemptContext context) 
@@ -72,15 +84,13 @@ public class LeanRecordReader extends RecordReader<LongWritable, Text> {
 			this.split = (LeanInputSplit) split;
 			size = 0;
 
+
 			vdfs = new VeloxDFS(this.split.jobID, this.split.taskID, false);
 
 			Configuration conf = context.getConfiguration();
 
 			int bufferSize     = conf.getInt("velox.recordreader.buffersize", DEFAULT_BUFFER_SIZE);
 			int lineBufferSize = conf.getInt("velox.recordreader.linebuffersize", DEFAULT_LINE_BUFFER_SIZE);
-			
-			// For Multi Waves
-			maxProcessBlock = conf.getInt("velox.recordreader.maxprocessblock", 16);
 
 			buffer = new byte[bufferSize];
 			lineBuffer = new byte[DEFAULT_LINE_BUFFER_SIZE];
@@ -97,52 +107,135 @@ public class LeanRecordReader extends RecordReader<LongWritable, Text> {
 
 	public boolean nextKeyValue() throws IOException, InterruptedException {
 		boolean isEOF = false;
-		int off = 0;
+		// Computing key
 		final long startTime = System.currentTimeMillis();
-		key.set(totalread);
+		key.set(pos);
 
-		while(true) {
+		// Computing value
+		String line = "";
+
+		int lpos = 0;
+		int newSize = 0;
+
+		lineBuffer[0] = 0;
+		while (lpos < DEFAULT_LINE_BUFFER_SIZE) {
+			if(remainingBytes == 0) {
+				remainingBytes = read(pos, buffer, bufferOffset, buffer.length);
+				is = new ByteArrayInputStream(buffer);
+				bfReader = new BufferedReader(new InputStreamReader(is));
+			}
 			if(remainingBytes <= 0) {
-				//For multi waves				
-				/*
-				if(processBlock >= maxProcessBlock){
-					return false;
-				}
-				*/
-
-				readBytes = vdfs.readChunk(buffer, off);
-				if(readBytes <= 0) {
-					//LOG.info("Job is terminated");
-					return false;
-				}
-				remainingBytes = readBytes;
-				start = 0;
-				curpos = 0;
-				
-				//For multi waves
-				//LOG.info("Get Block: " + String.valueOf(processBlock));
-				//processBlock += readBytes;
-				processBlock++;
+				return false;
 			}
 
-			if(curpos == buffer.length - 1 || buffer[curpos] == '\n' || curpos >= readBytes) {
-				value.set(buffer, start, curpos - start);
-				curpos++;
-				start = curpos;
-				totalread += curpos - start +  1;
-				processed++;
-				if(curpos >= readBytes) {
+			try {
+				if((line = bfReader.readLine()) != null) {
+					LOG.info(line);
+					remainingBytes -= line.length();
+					break;
+				} else {
 					remainingBytes = 0;
+
+				}
+			} catch(Exception e) {
+
+			}
+
+			/*
+			bufferOffset %= buffer.length;
+			if (bufferOffset == 0 || remainingBytes == 0) {
+				LOG.info("Read chunk from shared memory");
+				bufferOffset = 0;
+				remainingBytes = read(pos, buffer, bufferOffset, buffer.length);
+			}
+			if (remainingBytes <= 0) {
+				return false;
+			}
+			try {
+				is = new ByteArrayInputStream(buffer,0,lpos);
+				bfReader = new BufferedReader(new InputStreamReader(is));
+				
+				if((line = bfReader.readLine()) != null) {
+					LOG.info(line);
+					pos += line.length();
+					remainingBytes -= line.length();
+					bufferOffset += line.length();
+					break;
+				} else {
+					isEOF = true;
+					return false;
+				}
+			} catch(Exception e) {
+
+			}
+			//byte c = read();
+			
+			if (c == '\n' || c == -1) {
+				lineBuffer[lpos + 1] = 0;
+				line = new String(lineBuffer, 0, lpos);
+				LOG.info("line: " + line);
+				if (c == -1) {
+					isEOF = true;
 				}
 				break;
-			} 
-			curpos++;
-			remainingBytes--;
-		}
+			}
+			
+			else {
+				LOG.info("not new line character");
+			}
 
+			lineBuffer[lpos++] = c;
+			*/
+		}
+		value.set(line);
+		//value.set(lineBuffer);
+		//LOG.info("key = " + key.toString() + " value = " + line);
 		final long endTime = System.currentTimeMillis();
 		nextTime += (endTime - startTime);
-		return true;
+		return lpos > 0 || !isEOF;
+	}
+
+	private byte read() {
+		bufferOffset %= buffer.length;
+		if (bufferOffset == 0 || remainingBytes == 0) {
+			LOG.info("Read chunk from shared memory");
+			bufferOffset = 0;
+			remainingBytes = read(pos, buffer, bufferOffset, buffer.length);
+		}
+
+		if (remainingBytes <= 0) {
+			return -1;
+		}
+
+		final byte ret = buffer[bufferOffset];
+		//String str = String.valueOf((char)ret);
+		//LOG.info(str);
+
+		// Increment/decrement counters
+		pos++;
+		remainingBytes--;
+		bufferOffset++;
+
+		return ret;
+	}
+
+	public int read(long pos, byte[] buf, int off, int len) {
+		int i = 0; 
+		long totalSize = 0;
+		long readBytes = 0;
+
+		// Get new chunk if no bytes to read
+		if (pos >= size) {
+			readBytes = vdfs.readChunk(buf, off);
+			//LOG.info("[vdfs.readChunk] readBytes: " + Long.toString(readBytes) + " off: " + Integer.toString(off));
+			processed++;
+		}
+
+		if (readBytes <= 0) {
+			return -1;
+		}
+
+		return (int)readBytes;
 	}
 
 	public LongWritable getCurrentKey() throws IOException, InterruptedException {

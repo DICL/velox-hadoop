@@ -92,7 +92,7 @@ public class LeanWordCount {
 
     boolean ret = job.waitForCompletion(true);
 
-    String zkAddress   = conf.get("velox.recordreader.zk-addr", "192.168.0.101:2181");
+    String zkAddress   = conf.get("velox.recordreader.zk-addr", "172.20.1.80:2381");
     LeanSession session = new LeanSession(zkAddress, job.getStatus().getJobID().toString(), 500000);
     session.deleteChunks();
     session.close();

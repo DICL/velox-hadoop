@@ -100,7 +100,7 @@ public class VeloxFileSystem extends FileSystem {
   public void initialize(URI uri, org.apache.hadoop.conf.Configuration conf) throws IOException {
     super.initialize(uri, conf);
     if (veloxdfs == null) {
-      this.veloxdfs = new VeloxDFS();
+      this.veloxdfs = new VeloxDFS(null,0,true);
     }
     setConf(conf);
     this.workingDir = new Path("/");

@@ -1,5 +1,5 @@
 // vim: ft=groovy
-plugins { 
+plugins {
   id 'java'
   id 'application'
   id 'maven-publish'
@@ -8,7 +8,7 @@ plugins {
 
 repositories {
     flatDir {
-        dirs "${System.env.JAVA_LIBRARY_PATH}/java" 
+        dirs "${System.env.JAVA_LIBRARY_PATH}/java"
     }
 
     mavenCentral()
@@ -31,10 +31,10 @@ jar {
     )
   }
 
-  from { 
-    configurations.compile.collect { 
-      it.isDirectory() ? it : zipTree(it) 
-    } 
+  from {
+    configurations.compile.collect {
+      it.isDirectory() ? it : zipTree(it)
+    }
   }
 }
 
